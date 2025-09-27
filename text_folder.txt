@@ -1,0 +1,329 @@
+agro-connect/
+│
+├── backend/                          # Golang API service
+│   ├── cmd/
+│   │   └── server/
+│   │       └── main.go               # Application entry point
+│   │
+│   ├── internal/                     # Private application code
+│   │   ├── auth/
+│   │   │   ├── handler.go           # Auth endpoints
+│   │   │   ├── service.go           # Auth business logic
+│   │   │   ├── repository.go        # Auth data access
+│   │   │   ├── middleware.go        # JWT middleware
+│   │   │   └── model.go             # User model
+│   │   │
+│   │   ├── farmer/
+│   │   │   ├── handler.go           # Farmer HTTP handlers
+│   │   │   ├── service.go           # Farmer business logic
+│   │   │   ├── repository.go        # Farmer data access
+│   │   │   ├── model.go             # Farmer domain model
+│   │   │   └── dto.go               # Farmer request/response DTOs
+│   │   │
+│   │   ├── vendor/
+│   │   │   ├── handler.go
+│   │   │   ├── service.go
+│   │   │   ├── repository.go
+│   │   │   ├── model.go
+│   │   │   └── dto.go
+│   │   │
+│   │   ├── transporter/
+│   │   │   ├── handler.go
+│   │   │   ├── service.go
+│   │   │   ├── repository.go
+│   │   │   ├── model.go
+│   │   │   └── dto.go
+│   │   │
+│   │   ├── buyer/
+│   │   │   ├── handler.go
+│   │   │   ├── service.go
+│   │   │   ├── repository.go
+│   │   │   ├── model.go
+│   │   │   └── dto.go
+│   │   │
+│   │   ├── order/
+│   │   │   ├── handler.go           # Order management
+│   │   │   ├── service.go
+│   │   │   ├── repository.go
+│   │   │   ├── model.go
+│   │   │   └── dto.go
+│   │   │
+│   │   ├── product/
+│   │   │   ├── handler.go           # Product catalog
+│   │   │   ├── service.go
+│   │   │   ├── repository.go
+│   │   │   ├── model.go
+│   │   │   └── dto.go
+│   │   │
+│   │   └── common/
+│   │       ├── responses/           # Standard API responses
+│   │       ├── errors/              # Custom error types
+│   │       └── utils/               # Shared utilities
+│   │
+│   ├── pkg/                         # Reusable packages
+│   │   ├── database/
+│   │   │   ├── postgres.go          # DB connection
+│   │   │   └── migrations.go        # Migration runner
+│   │   │
+│   │   ├── logger/
+│   │   │   └── zap_logger.go        # Structured logging
+│   │   │
+│   │   ├── validator/
+│   │   │   └── custom_validator.go  # Request validation
+│   │   │
+│   │   └── email/
+│   │       └── sender.go            # Email service
+│   │
+│   ├── api/
+│   │   ├── routes.go                # Route definitions
+│   │   ├── middleware.go            # Global middleware
+│   │   └── openapi/                 # API documentation
+│   │       └── swagger.yaml
+│   │
+│   ├── configs/
+│   │   ├── config.yaml              # Main configuration
+│   │   ├── config.go                # Config struct
+│   │   └── config_dev.yaml          # Development config
+│   │
+│   ├── migrations/                  # Database migrations
+│   │   ├── 001_create_users.up.sql
+│   │   ├── 001_create_users.down.sql
+│   │   ├── 002_create_products.up.sql
+│   │   └── ...
+│   │
+│   ├── scripts/                     # Utility scripts
+│   │   ├── migrate.sh
+│   │   ├── seed.sh
+│   │   └── deploy_local.sh
+│   │
+│   ├── tests/                       # Test files
+│   │   ├── integration/
+│   │   └── unit/
+│   │
+│   ├── go.mod
+│   ├── go.sum
+│   └── Dockerfile
+│
+├── frontend/                        # React application
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── favicon.ico
+│   │   └── manifest.json
+│   │
+│   ├── src/
+│   │   ├── api/                     # API clients
+│   │   │   ├── axiosClient.ts
+│   │   │   ├── farmerApi.ts
+│   │   │   ├── vendorApi.ts
+│   │   │   ├── authApi.ts
+│   │   │   └── orderApi.ts
+│   │   │
+│   │   ├── components/              # Reusable UI components
+│   │   │   ├── ui/
+│   │   │   │   ├── Button/
+│   │   │   │   │   ├── Button.tsx
+│   │   │   │   │   └── Button.module.css
+│   │   │   │   ├── Input/
+│   │   │   │   ├── Modal/
+│   │   │   │   └── Table/
+│   │   │   │
+│   │   │   ├── forms/
+│   │   │   │   ├── LoginForm.tsx
+│   │   │   │   ├── RegisterForm.tsx
+│   │   │   │   └── ProductForm.tsx
+│   │   │   │
+│   │   │   ├── layout/
+│   │   │   │   ├── Header/
+│   │   │   │   ├── Sidebar/
+│   │   │   │   └── Footer/
+│   │   │   │
+│   │   │   └── shared/
+│   │   │       ├── LoadingSpinner/
+│   │   │       ├── ErrorBoundary/
+│   │   │       └── Notification/
+│   │   │
+│   │   ├── features/                # Feature-based modules
+│   │   │   ├── auth/
+│   │   │   │   ├── components/
+│   │   │   │   ├── hooks/
+│   │   │   │   │   └── useAuth.ts
+│   │   │   │   ├── pages/
+│   │   │   │   │   ├── LoginPage.tsx
+│   │   │   │   │   └── RegisterPage.tsx
+│   │   │   │   └── types/
+│   │   │   │
+│   │   │   ├── farmer/
+│   │   │   │   ├── components/
+│   │   │   │   ├── hooks/
+│   │   │   │   ├── pages/
+│   │   │   │   │   ├── FarmerDashboard.tsx
+│   │   │   │   │   ├── AddProductPage.tsx
+│   │   │   │   │   └── ProductListPage.tsx
+│   │   │   │   └── utils/
+│   │   │   │
+│   │   │   ├── vendor/
+│   │   │   │   ├── pages/
+│   │   │   │   │   └── VendorDashboard.tsx
+│   │   │   │   └── components/
+│   │   │   │
+│   │   │   ├── transporter/
+│   │   │   │   ├── pages/
+│   │   │   │   │   └── TransporterDashboard.tsx
+│   │   │   │   └── components/
+│   │   │   │
+│   │   │   ├── buyer/
+│   │   │   │   ├── pages/
+│   │   │   │   │   └── BuyerDashboard.tsx
+│   │   │   │   └── components/
+│   │   │   │
+│   │   │   └── orders/
+│   │   │       ├── pages/
+│   │   │       ├── components/
+│   │   │       └── hooks/
+│   │   │
+│   │   ├── contexts/                # React contexts
+│   │   │   ├── AuthContext.tsx
+│   │   │   ├── ThemeContext.tsx
+│   │   │   └── NotificationContext.tsx
+│   │   │
+│   │   ├── hooks/                   # Custom hooks
+│   │   │   ├── useLocalStorage.ts
+│   │   │   ├── useApi.ts
+│   │   │   └── useDebounce.ts
+│   │   │
+│   │   ├── utils/                   # Utilities
+│   │   │   ├── constants.ts
+│   │   │   ├── helpers.ts
+│   │   │   ├── validators.ts
+│   │   │   └── formatters.ts
+│   │   │
+│   │   ├── types/                   # TypeScript types
+│   │   │   ├── user.ts
+│   │   │   ├── product.ts
+│   │   │   ├── order.ts
+│   │   │   └── api.ts
+│   │   │
+│   │   ├── routes/                  # Routing
+│   │   │   ├── AppRoutes.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   └── routes.config.ts
+│   │   │
+│   │   ├── styles/                  # Global styles
+│   │   │   ├── globals.css
+│   │   │   ├── variables.css
+│   │   │   └── mixins.css
+│   │   │
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts
+│   │
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vite.config.ts
+│   ├── tsconfig.json
+│   ├── tailwind.config.js           # If using Tailwind
+│   └── Dockerfile
+│
+├── deployments/                     # Infrastructure & deployment
+│   ├── docker/
+│   │   ├── backend.Dockerfile
+│   │   ├── frontend.Dockerfile
+│   │   ├── nginx.Dockerfile
+│   │   └── docker-compose.yml       # Local development
+│   │
+│   ├── kubernetes/
+│   │   ├── backend/
+│   │   │   ├── deployment.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── configmap.yaml
+│   │   │
+│   │   ├── frontend/
+│   │   │   ├── deployment.yaml
+│   │   │   └── service.yaml
+│   │   │
+│   │   ├── database/
+│   │   │   ├── postgres-statefulset.yaml
+│   │   │   └── postgres-service.yaml
+│   │   │
+│   │   ├── ingress/
+│   │   │   └── ingress.yaml
+│   │   │
+│   │   └── secrets/
+│   │       └── secrets.yaml
+│   │
+│   ├── ci-cd/
+│   │   ├── github-actions/
+│   │   │   ├── backend-ci.yml
+│   │   │   ├── frontend-ci.yml
+│   │   │   └── deploy-prod.yml
+│   │   │
+│   │   └── scripts/
+│   │       ├── build.sh
+│   │       ├── test.sh
+│   │       └── deploy.sh
+│   │
+│   └── monitoring/
+│       ├── prometheus/
+│       └── grafana/
+│
+├── docs/                            # Documentation
+│   ├── architecture/
+│   │   ├── system-architecture.md
+│   │   ├── api-design.md
+│   │   └── database-schema.md
+│   │
+│   ├── api/
+│   │   ├── openapi-spec.yaml
+│   │   ├── endpoints.md
+│   │   └── examples/
+│   │
+│   ├── setup/
+│   │   ├── development-setup.md
+│   │   ├── deployment-guide.md
+│   │   └── troubleshooting.md
+│   │
+│   ├── diagrams/                    # Architecture diagrams
+│   │   ├── system-architecture.png
+│   │   ├── database-schema.png
+│   │   └── deployment-diagram.png
+│   │
+│   └── decisions/                   # ADRs (Architecture Decision Records)
+│       ├── 001-backend-architecture.md
+│       ├── 002-frontend-structure.md
+│       └── 003-database-choice.md
+│
+├── scripts/                         # Project-wide scripts
+│   ├── dev/
+│   │   ├── start-backend.sh
+│   │   ├── start-frontend.sh
+│   │   └── setup-db.sh
+│   │
+│   ├── database/
+│   │   ├── reset-db.sh
+│   │   ├── seed-data.sh
+│   │   └── backup.sh
+│   │
+│   └── deployment/
+│       ├── build-all.sh
+│       └── deploy-staging.sh
+│
+├── .github/                         # GitHub specific configs
+│   ├── workflows/
+│   │   ├── ci.yml
+│   │   ├── cd.yml
+│   │   └── tests.yml
+│   │
+│   ├── ISSUE_TEMPLATE/
+│   └── PULL_REQUEST_TEMPLATE/
+│
+├── .vscode/                         # VS Code settings
+│   ├── settings.json
+│   ├── extensions.json
+│   └── launch.json
+│
+├── Makefile                         # Common commands
+├── docker-compose.yml               # Local development
+├── .env.example                     # Environment variables template
+├── .gitignore
+├── README.md                        # Project overview
+└── LICENSE
