@@ -32,3 +32,5 @@ go.work.sum
 # .vscode/
 
 ./backend/.env
+./frontend/.env
+./admin/.env 

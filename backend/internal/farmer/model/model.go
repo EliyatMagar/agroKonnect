@@ -1,10 +1,11 @@
-package farmer
+package model
 
 import (
-	"agro_konnect/internal/product"
+	product "agro_konnect/internal/product/model"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type FarmType string
@@ -39,7 +40,7 @@ type Farmer struct {
 	FarmName        string          `gorm:"not null" json:"farm_name"`
 	FarmDescription string          `json:"farm_description"`
 	FarmType        FarmType        `gorm:"type:varchar(50)" json:"farm_type"`
-	Certifications  []Certification `gorm:"type:varchar(50)[]" json:"certifications"`
+	Certifications  []Certification `gorm:"type:json" json:"certifications"`
 
 	// Location
 	Address   string  `gorm:"not null" json:"address"`
@@ -79,4 +80,42 @@ type FarmerDocument struct {
 	DocumentURL  string    `gorm:"not null" json:"document_url"`
 	Verified     bool      `gorm:"default:false" json:"verified"`
 	UploadedAt   time.Time `json:"uploaded_at"`
+}
+
+// TableName specifies the table name for Farmer
+func (Farmer) TableName() string {
+	return "farmers"
+}
+
+// TableName specifies the table name for FarmerDocument
+func (FarmerDocument) TableName() string {
+	return "farmer_documents"
+}
+
+// BeforeCreate hook to set UUID and timestamps
+func (f *Farmer) BeforeCreate(tx *gorm.DB) error {
+	if f.ID == uuid.Nil {
+		f.ID = uuid.New()
+	}
+	now := time.Now()
+	f.CreatedAt = now
+	f.UpdatedAt = now
+	return nil
+}
+
+// BeforeUpdate hook to update timestamps
+func (f *Farmer) BeforeUpdate(tx *gorm.DB) error {
+	f.UpdatedAt = time.Now()
+	return nil
+}
+
+// BeforeCreate hook for FarmerDocument
+func (fd *FarmerDocument) BeforeCreate(tx *gorm.DB) error {
+	if fd.ID == uuid.Nil {
+		fd.ID = uuid.New()
+	}
+	if fd.UploadedAt.IsZero() {
+		fd.UploadedAt = time.Now()
+	}
+	return nil
 }

@@ -4,8 +4,9 @@ import (
 	"agro_konnect/config"
 	"agro_konnect/pkg/routes"
 	"log"
-	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -17,12 +18,7 @@ func main() {
 		log.Println("No .env file found, using system environment variables")
 	}
 
-	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		log.Fatal("FRONTEND_URL not set in .env")
-	}
-
-	// Load config - this already includes DB connection
+	// Load config
 	cfg := config.LoadConfig()
 	db := cfg.DB
 
@@ -33,33 +29,27 @@ func main() {
 	}
 	defer sqlDB.Close()
 
-	// Test the connection
 	if err := sqlDB.Ping(); err != nil {
 		log.Fatalf("❌ Database connection failed: %v", err)
 	}
 
 	router := gin.Default()
 
-	// Add CORS middleware since you have FRONTEND_URL
-	router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", frontendURL)
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	})
+	// CORS configuration
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Accept", "Cache-Control", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	routes.RegisterRoutes(router, db)
 
-	// Start server
 	log.Println("🚀 Server running at http://localhost:8080")
-	log.Printf("🌐 Frontend URL: %s", frontendURL)
+	log.Println("🌐 CORS enabled for localhost:5173 and localhost:5174")
+
 	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("❌ Failed to start server: %v", err)
 	}

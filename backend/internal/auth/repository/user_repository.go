@@ -2,6 +2,7 @@ package repository
 
 import (
 	model "agro_konnect/internal/auth/model"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,12 +42,27 @@ func (r *userRepository) FindByID(id uuid.UUID) (*model.User, error) {
 func (r *userRepository) FindByEmail(email string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("email = ?", email).First(&user).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil // Not found → safe for registration
+	}
+	if err != nil {
+		return nil, err // Some other DB error
+	}
 	return &user, err
 }
 
 func (r *userRepository) FindByPhone(phone string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("phone = ?", phone).First(&user).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	return &user, err
 }
 
