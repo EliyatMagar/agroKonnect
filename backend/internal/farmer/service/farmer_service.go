@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	dto "agro_konnect/internal/farmer/dto"
@@ -13,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 var (
@@ -76,6 +79,12 @@ func (s *farmerService) CreateFarmer(ctx context.Context, userID uuid.UUID, req 
 		return nil, errors.New("farmer must be at least 18 years old")
 	}
 
+	// Convert certifications to JSON
+	certificationsJSON, err := s.certificationsToJSON(req.Certifications)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize certifications: %v", err)
+	}
+
 	farmer := &model.Farmer{
 		ID:              uuid.New(),
 		UserID:          userID,
@@ -86,7 +95,7 @@ func (s *farmerService) CreateFarmer(ctx context.Context, userID uuid.UUID, req 
 		FarmName:        strings.TrimSpace(req.FarmName),
 		FarmDescription: strings.TrimSpace(req.FarmDescription),
 		FarmType:        req.FarmType,
-		Certifications:  req.Certifications,
+		Certifications:  certificationsJSON,
 		Address:         strings.TrimSpace(req.Address),
 		City:            strings.TrimSpace(req.City),
 		State:           strings.TrimSpace(req.State),
@@ -159,7 +168,11 @@ func (s *farmerService) UpdateFarmer(ctx context.Context, userID uuid.UUID, req 
 		farmer.FarmDescription = strings.TrimSpace(req.FarmDescription)
 	}
 	if req.Certifications != nil {
-		farmer.Certifications = req.Certifications
+		certificationsJSON, err := s.certificationsToJSON(req.Certifications)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize certifications: %v", err)
+		}
+		farmer.Certifications = certificationsJSON
 	}
 	if req.Address != "" {
 		farmer.Address = strings.TrimSpace(req.Address)
@@ -221,14 +234,14 @@ func (s *farmerService) GetAllFarmers(ctx context.Context, filters dto.FarmerFil
 		responses[i] = s.toFarmerResponse(ctx, farmer)
 	}
 
-	pages := (total + int64(filters.PageSize) - 1) / int64(filters.PageSize)
-	hasMore := int64(filters.Page) < pages
+	pages := int(math.Ceil(float64(total) / float64(filters.PageSize)))
+	hasMore := filters.Page < pages
 
 	return &dto.FarmerListResponse{
 		Farmers: responses,
 		Total:   total,
 		Page:    filters.Page,
-		Pages:   int(pages),
+		Pages:   pages,
 		HasMore: hasMore,
 	}, nil
 }
@@ -328,6 +341,13 @@ func (s *farmerService) BulkUpdateRatings(ctx context.Context, farmerRatings map
 func (s *farmerService) toFarmerResponse(ctx context.Context, farmer *model.Farmer) *dto.FarmerResponse {
 	productCount, activeListings := s.getProductStats(ctx, farmer.ID)
 
+	// Convert JSON certifications back to slice
+	certifications, err := s.jsonToCertifications(farmer.Certifications)
+	if err != nil {
+		log.Printf("Error parsing certifications for farmer %s: %v", farmer.ID, err)
+		certifications = []model.Certification{}
+	}
+
 	return &dto.FarmerResponse{
 		ID:              farmer.ID,
 		UserID:          farmer.UserID,
@@ -337,7 +357,7 @@ func (s *farmerService) toFarmerResponse(ctx context.Context, farmer *model.Farm
 		FarmName:        farmer.FarmName,
 		FarmDescription: farmer.FarmDescription,
 		FarmType:        farmer.FarmType,
-		Certifications:  farmer.Certifications,
+		Certifications:  certifications,
 		Address:         farmer.Address,
 		City:            farmer.City,
 		State:           farmer.State,
@@ -384,4 +404,42 @@ func (s *farmerService) validateCoordinates(lat, lng float64) error {
 func (s *farmerService) isValidDateOfBirth(dob time.Time) bool {
 	age := time.Since(dob).Hours() / 24 / 365.25
 	return age >= 18
+}
+
+// Helper functions for JSON serialization
+func (s *farmerService) certificationsToJSON(certifications []model.Certification) (datatypes.JSON, error) {
+	if len(certifications) == 0 {
+		return datatypes.JSON("[]"), nil
+	}
+
+	// Convert to string array for JSON serialization
+	strCerts := make([]string, len(certifications))
+	for i, cert := range certifications {
+		strCerts[i] = string(cert)
+	}
+
+	jsonData, err := json.Marshal(strCerts)
+	if err != nil {
+		return datatypes.JSON("[]"), err
+	}
+
+	return datatypes.JSON(jsonData), nil
+}
+
+func (s *farmerService) jsonToCertifications(jsonData datatypes.JSON) ([]model.Certification, error) {
+	if len(jsonData) == 0 {
+		return []model.Certification{}, nil
+	}
+
+	var strCerts []string
+	if err := json.Unmarshal(jsonData, &strCerts); err != nil {
+		return nil, err
+	}
+
+	certifications := make([]model.Certification, len(strCerts))
+	for i, strCert := range strCerts {
+		certifications[i] = model.Certification(strCert)
+	}
+
+	return certifications, nil
 }

@@ -1,7 +1,10 @@
 package config
 
 import (
-	"agro_konnect/internal/auth/model"
+	authModel "agro_konnect/internal/auth/model"
+	farmerModel "agro_konnect/internal/farmer/model"
+	productModel "agro_konnect/internal/product/model"
+
 	"log"
 	"os"
 
@@ -52,9 +55,12 @@ func LoadConfig() *Config {
 func autoMigrate(db *gorm.DB) error {
 	// Migrate all your models here
 	err := db.AutoMigrate(
-		&model.User{},
-		&model.VerificationCode{},
-		// Add other models as needed
+		&authModel.User{},
+		&authModel.VerificationCode{},
+		&farmerModel.Farmer{},
+		&farmerModel.FarmerDocument{},
+		&productModel.Product{},
+		&productModel.ProductReview{},
 	)
 
 	if err != nil {

@@ -87,8 +87,11 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 	})
 
 	if err != nil {
-		if errors.Is(err, jwt.ErrTokenExpired) {
-			return nil, ErrTokenExpired
+		// ✅ More robust expired token detection
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			if ve.Errors&jwt.ValidationErrorExpired != 0 {
+				return nil, ErrTokenExpired
+			}
 		}
 		return nil, ErrInvalidToken
 	}

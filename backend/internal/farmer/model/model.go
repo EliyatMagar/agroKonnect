@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -37,10 +38,10 @@ type Farmer struct {
 	ExperienceYears int       `json:"experience_years"`
 
 	// Farm Information
-	FarmName        string          `gorm:"not null" json:"farm_name"`
-	FarmDescription string          `json:"farm_description"`
-	FarmType        FarmType        `gorm:"type:varchar(50)" json:"farm_type"`
-	Certifications  []Certification `gorm:"type:json" json:"certifications"`
+	FarmName        string         `gorm:"not null" json:"farm_name"`
+	FarmDescription string         `json:"farm_description"`
+	FarmType        FarmType       `gorm:"type:varchar(50)" json:"farm_type"`
+	Certifications  datatypes.JSON `gorm:"type:jsonb" json:"certifications"`
 
 	// Location
 	Address   string  `gorm:"not null" json:"address"`

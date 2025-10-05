@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS farmers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    farm_name VARCHAR(100) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    farm_size FLOAT NOT NULL,
+    farm_type VARCHAR(50) NOT NULL,
+    experience INT NOT NULL,
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,4 +1,4 @@
-package product
+package dto
 
 import (
 	model "agro_konnect/internal/product/model"
@@ -136,4 +136,20 @@ type ProductReviewResponse struct {
 	Helpful    int  `json:"helpful"`
 
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type UpdateStockRequest struct {
+	Quantity float64 `json:"quantity" validate:"required,min=0"`
+}
+
+type UpdateStatusRequest struct {
+	Status string `json:"status" validate:"required,oneof=draft active inactive sold_out expired"`
+}
+
+type ProductListResponse struct {
+	Products []*ProductResponse `json:"products"`
+	Total    int64              `json:"total"`
+	Page     int                `json:"page"`
+	Pages    int                `json:"pages"`
+	HasMore  bool               `json:"has_more"`
 }

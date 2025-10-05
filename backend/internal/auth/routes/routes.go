@@ -3,6 +3,7 @@ package routes
 import (
 	"agro_konnect/internal/auth/handler"
 	"agro_konnect/internal/auth/middleware"
+	"agro_konnect/internal/auth/model"
 	"agro_konnect/internal/auth/repository"
 	"agro_konnect/internal/auth/service"
 	"agro_konnect/internal/auth/utils"
@@ -69,7 +70,7 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) {
 
 		// Admin routes (require admin role)
 		admin := protected.Group("/admin")
-		admin.Use(authMiddleware.RequireRole("admin"))
+		admin.Use(authMiddleware.RequireRole(model.RoleAdmin))
 		{
 			admin.GET("/users", adminHandler.GetUsers)
 			admin.GET("/users/:id", adminHandler.GetUserByID)
@@ -83,7 +84,7 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) {
 
 		// Role-based routes
 		farmer := protected.Group("/farmer")
-		farmer.Use(authMiddleware.RequireRole("farmer", "admin"))
+		farmer.Use(authMiddleware.RequireRole(model.RoleFarmer, model.RoleAdmin))
 		{
 			farmer.GET("/dashboard", func(c *gin.Context) {
 				c.JSON(200, gin.H{"message": "Farmer dashboard"})
@@ -91,7 +92,7 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) {
 		}
 
 		vendor := protected.Group("/vendor")
-		vendor.Use(authMiddleware.RequireRole("vendor", "admin"))
+		vendor.Use(authMiddleware.RequireRole(model.RoleVendor, model.RoleAdmin))
 		{
 			vendor.GET("/dashboard", func(c *gin.Context) {
 				c.JSON(200, gin.H{"message": "Vendor dashboard"})
@@ -99,7 +100,7 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) {
 		}
 
 		transporter := protected.Group("/transporter")
-		transporter.Use(authMiddleware.RequireRole("transporter", "admin"))
+		transporter.Use(authMiddleware.RequireRole(model.RoleTransporter, model.RoleAdmin))
 		{
 			transporter.GET("/dashboard", func(c *gin.Context) {
 				c.JSON(200, gin.H{"message": "Transporter dashboard"})
@@ -107,7 +108,7 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) {
 		}
 
 		buyer := protected.Group("/buyer")
-		buyer.Use(authMiddleware.RequireRole("buyer", "admin"))
+		buyer.Use(authMiddleware.RequireRole(model.RoleBuyer, model.RoleAdmin))
 		{
 			buyer.GET("/dashboard", func(c *gin.Context) {
 				c.JSON(200, gin.H{"message": "Buyer dashboard"})

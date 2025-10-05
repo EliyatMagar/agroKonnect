@@ -13,7 +13,8 @@ import (
 
 const (
 	AuthorizationHeader = "Authorization"
-	UserContextKey      = "user"
+	UserContextKey      = "userID"   // unified key for userID
+	UserRoleContextKey  = "userRole" // unified key for role
 )
 
 type AuthMiddleware struct {
@@ -24,6 +25,7 @@ func NewAuthMiddleware(jwtManager *utils.JWTManager) *AuthMiddleware {
 	return &AuthMiddleware{jwtManager: jwtManager}
 }
 
+// Authenticate verifies JWT and injects user info into context
 func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := extractToken(c.Request)
@@ -35,34 +37,35 @@ func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 
 		claims, err := m.jwtManager.ValidateToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			if err == utils.ErrTokenExpired {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			}
 			c.Abort()
 			return
 		}
 
-		userID, err := uuid.Parse(claims.Subject)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user in token"})
-			c.Abort()
-			return
-		}
+		// ✅ Use claims.UserID directly
+		userID := claims.UserID
 
 		c.Set(UserContextKey, userID)
-		c.Set("userRole", claims.Role)
+		c.Set(UserRoleContextKey, claims.Role)
 		c.Next()
 	}
 }
 
+// RequireRole checks if user has one of the required roles
 func (m *AuthMiddleware) RequireRole(roles ...model.UserRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, exists := c.Get(UserContextKey)
+		_, exists := c.Get(UserContextKey)
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 			c.Abort()
 			return
 		}
 
-		userRole, exists := c.Get("userRole")
+		userRole, exists := c.Get(UserRoleContextKey)
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user role not found"})
 			c.Abort()
@@ -83,11 +86,11 @@ func (m *AuthMiddleware) RequireRole(roles ...model.UserRole) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userID", userID)
 		c.Next()
 	}
 }
 
+// Helper to extract bearer token
 func extractToken(r *http.Request) string {
 	bearerToken := r.Header.Get(AuthorizationHeader)
 	if strings.HasPrefix(bearerToken, "Bearer ") {
@@ -96,12 +99,11 @@ func extractToken(r *http.Request) string {
 	return ""
 }
 
-// Helper function to get user ID from context
+// Helper to get user ID from context
 func GetUserIDFromContext(c *gin.Context) (uuid.UUID, error) {
 	userID, exists := c.Get(UserContextKey)
 	if !exists {
 		return uuid.Nil, service.ErrUnauthorized
 	}
-
 	return userID.(uuid.UUID), nil
 }

@@ -1,0 +1,212 @@
+API requests to test your product management system:
+
+1. Product Management APIs
+Create Product
+http
+POST {{base_url}}/api/v1/products
+Content-Type: application/json
+Authorization: Bearer {{farmer_token}}
+
+{
+  "name": "Organic Apples",
+  "category": "fruits",
+  "subcategory": "fresh fruits",
+  "description": "Fresh organic apples from local farm",
+  "images": ["/api/v1/products/images/apple1.jpg"],
+  "price_per_unit": 2.50,
+  "unit": "kg",
+  "available_stock": 100,
+  "min_order": 1,
+  "max_order": 50,
+  "quality_grade": "premium",
+  "organic": true,
+  "certified": true,
+  "certification_details": "USDA Organic Certified",
+  "harvest_date": "2024-01-15",
+  "shelf_life": 30,
+  "storage_tips": "Store in cool dry place",
+  "weight_range": "150-200g",
+  "color": "Red",
+  "size": "Medium",
+  "variety": "Fuji",
+  "farm_location": "123 Farm Road, Countryside",
+  "latitude": 40.7128,
+  "longitude": -74.0060
+}
+Get All Products (with filters)
+http
+GET {{base_url}}/api/v1/products?category=fruits&min_price=1&max_price=5&organic=true&page=1&page_size=10
+Get Product by ID
+http
+GET {{base_url}}/api/v1/products/{{product_id}}
+Get My Products (Farmer's products)
+http
+GET {{base_url}}/api/v1/products/me
+Authorization: Bearer {{farmer_token}}
+Update Product
+http
+PUT {{base_url}}/api/v1/products/{{product_id}}
+Content-Type: application/json
+Authorization: Bearer {{farmer_token}}
+
+{
+  "name": "Premium Organic Apples",
+  "description": "Updated description for premium organic apples",
+  "price_per_unit": 3.00,
+  "available_stock": 80,
+  "status": "active"
+}
+Delete Product
+http
+DELETE {{base_url}}/api/v1/products/{{product_id}}
+Authorization: Bearer {{farmer_token}}
+Update Stock
+http
+PUT {{base_url}}/api/v1/products/{{product_id}}/stock
+Content-Type: application/json
+Authorization: Bearer {{farmer_token}}
+
+{
+  "quantity": 150
+}
+Update Status
+http
+PUT {{base_url}}/api/v1/products/{{product_id}}/status
+Content-Type: application/json
+Authorization: Bearer {{farmer_token}}
+
+{
+  "status": "active"
+}
+Get Featured Products
+http
+GET {{base_url}}/api/v1/products/featured?limit=5
+Get Products by Category
+http
+GET {{base_url}}/api/v1/products/category/fruits?page=1&page_size=10
+Search Products
+http
+GET {{base_url}}/api/v1/products/search?q=organic apples&page=1&size=10
+2. Image Management APIs
+Upload Single Image
+http
+POST {{base_url}}/api/v1/products/images/upload
+Content-Type: multipart/form-data
+Authorization: Bearer {{farmer_token}}
+
+Body (form-data):
+key: file
+value: [select image file]
+Upload Multiple Images
+http
+POST {{base_url}}/api/v1/products/images/upload-multiple
+Content-Type: multipart/form-data
+Authorization: Bearer {{farmer_token}}
+
+Body (form-data):
+key: files
+value: [select multiple image files]
+Delete Image
+http
+DELETE {{base_url}}/api/v1/products/images/{{filename}}
+Authorization: Bearer {{farmer_token}}
+3. Admin Product Management APIs
+Get All Products (Admin)
+http
+GET {{base_url}}/api/v1/admin/products?page=1&page_size=20&search=apple&status=active&category=fruits
+Authorization: Bearer {{admin_token}}
+Get Product by ID (Admin)
+http
+GET {{base_url}}/api/v1/admin/products/{{product_id}}
+Authorization: Bearer {{admin_token}}
+Update Product Status (Admin)
+http
+PUT {{base_url}}/api/v1/admin/products/{{product_id}}/status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "status": "inactive"
+}
+Bulk Update Product Status
+http
+PUT {{base_url}}/api/v1/admin/products/bulk-status
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "product_ids": ["{{product_id_1}}", "{{product_id_2}}"],
+  "status": "active"
+}
+Delete Product (Admin)
+http
+DELETE {{base_url}}/api/v1/admin/products/{{product_id}}
+Authorization: Bearer {{admin_token}}
+Bulk Delete Products
+http
+DELETE {{base_url}}/api/v1/admin/products/bulk-delete
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "product_ids": ["{{product_id_1}}", "{{product_id_2}}"]
+}
+Get Product Statistics
+http
+GET {{base_url}}/api/v1/admin/products/stats
+Authorization: Bearer {{admin_token}}
+Get Products by Status
+http
+GET {{base_url}}/api/v1/admin/products/status/active?page=1&page_size=20
+Authorization: Bearer {{admin_token}}
+Update Featured Status
+http
+PUT {{base_url}}/api/v1/admin/products/{{product_id}}/featured
+Content-Type: application/json
+Authorization: Bearer {{admin_token}}
+
+{
+  "is_featured": true
+}
+Get Expiring Products
+http
+GET {{base_url}}/api/v1/admin/products/alerts/expiring?days=7
+Authorization: Bearer {{admin_token}}
+Get Low Stock Products
+http
+GET {{base_url}}/api/v1/admin/products/alerts/low-stock?threshold=10
+Authorization: Bearer {{admin_token}}
+Postman Environment Variables
+Create these environment variables in Postman:
+
+json
+{
+  "base_url": "http://localhost:8080",
+  "farmer_token": "your_farmer_jwt_token_here",
+  "admin_token": "your_admin_jwt_token_here",
+  "product_id": "actual_product_uuid"
+}
+Testing Sequence Recommendation
+Start with authentication - Get valid JWT tokens for farmer and admin roles
+
+Test image upload first to get image URLs for product creation
+
+Create a product using the uploaded image URLs
+
+Test product retrieval and filtering
+
+Test product updates and status changes
+
+Test admin functionalities with admin token
+
+Test bulk operations for efficient management
+
+Sample Test Data
+Product Categories:
+fruits, vegetables, grains, dairy, poultry, livestock, spices, herbs
+
+Quality Grades:
+premium, standard, economy
+
+Status Values:
+draft, active, inactive, sold_out, expired

@@ -1,0 +1,338 @@
+🚀 Postman Collection for Farmer API
+Base Configuration
+Base URL: http://localhost:8080/api/v1
+
+Content-Type: application/json
+
+Authorization: Bearer <your_jwt_token>
+
+🔐 Authentication Headers Setup
+Get JWT Token (Login)
+http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "farmer@example.com",
+  "password": "yourpassword"
+}
+Save the token in Postman Environment as jwt_token and use in Authorization header:
+
+text
+Authorization: Bearer {{jwt_token}}
+👨‍🌾 FARMER PROFILE MANAGEMENT
+1. Create Farmer Profile
+http
+POST /api/v1/farmers
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "full_name": "John Doe",
+  "profile_picture": "https://example.com/profile.jpg",
+  "date_of_birth": "1985-05-15",
+  "experience_years": 10,
+  "farm_name": "Green Valley Organic Farm",
+  "farm_description": "Family-owned organic farm specializing in fresh vegetables and fruits",
+  "farm_type": "organic",
+  "certifications": ["usda_organic", "fair_trade"],
+  "address": "123 Farm Road",
+  "city": "Springfield",
+  "state": "Illinois",
+  "country": "USA",
+  "zip_code": "62701",
+  "latitude": 39.7817,
+  "longitude": -89.6501,
+  "alternate_phone": "+1234567890",
+  "website": "https://greenvalleyfarm.com",
+  "total_land_area": 50.5,
+  "employee_count": 5
+}
+2. Get My Farmer Profile
+http
+GET /api/v1/farmers/me/profile
+Authorization: Bearer {{jwt_token}}
+3. Update My Farmer Profile
+http
+PUT /api/v1/farmers/me
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "full_name": "John Doe Updated",
+  "farm_description": "Updated description - now also offering dairy products",
+  "certifications": ["usda_organic", "fair_trade", "global_gap"],
+  "address": "456 New Farm Road",
+  "city": "Springfield",
+  "website": "https://greenvalleyfarm-updated.com",
+  "total_land_area": 75.2,
+  "employee_count": 8
+}
+4. Delete My Farmer Profile
+http
+DELETE /api/v1/farmers/me
+Authorization: Bearer {{jwt_token}}
+📄 PUBLIC FARMER ENDPOINTS
+5. Get All Farmers (With Filtering)
+http
+GET /api/v1/farmers?page=1&page_size=10&farm_type=organic&min_rating=4.0&city=Springfield
+Query Parameters:
+
+page: Page number (default: 1)
+
+page_size: Items per page (default: 10, max: 100)
+
+farm_type: Filter by farm type
+
+certification: Filter by certification
+
+city: Filter by city
+
+state: Filter by state
+
+country: Filter by country
+
+min_rating: Minimum rating (0-5)
+
+max_rating: Maximum rating (0-5)
+
+min_experience: Minimum years of experience
+
+is_verified: Filter by verification status
+
+is_premium: Filter by premium status
+
+search: Search in name, farm name, location
+
+sort_by: Sort field (rating, experience_years, created_at, farm_name)
+
+sort_order: Sort order (asc, desc)
+
+6. Get Farmer by ID
+http
+GET /api/v1/farmers/{{farmer_id}}
+7. Search Farmers
+http
+GET /api/v1/farmers/search?q=organic farm&page=1&size=10
+8. Get Nearby Farmers
+http
+GET /api/v1/farmers/nearby?lat=39.7817&lng=-89.6501&radius=50
+Query Parameters:
+
+lat: Latitude (required)
+
+lng: Longitude (required)
+
+radius: Radius in km (default: 10)
+
+📊 FARMER STATISTICS
+9. Get My Farmer Statistics
+http
+GET /api/v1/farmers/me/stats
+Authorization: Bearer {{jwt_token}}
+👑 ADMIN ENDPOINTS
+10. Verify Farmer (Admin Only)
+http
+PUT /api/v1/farmers/{{farmer_id}}/verify
+Authorization: Bearer {{admin_jwt_token}}
+🧪 TEST DATA FOR DIFFERENT SCENARIOS
+Test Case 1: Conventional Farm
+http
+POST /api/v1/farmers
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "full_name": "Robert Smith",
+  "date_of_birth": "1978-08-22",
+  "experience_years": 15,
+  "farm_name": "Smith Family Farms",
+  "farm_description": "Large-scale conventional farming operation",
+  "farm_type": "conventional",
+  "certifications": ["global_gap"],
+  "address": "789 Agriculture Avenue",
+  "city": "Des Moines",
+  "state": "Iowa",
+  "country": "USA",
+  "zip_code": "50301",
+  "latitude": 41.5868,
+  "longitude": -93.6250,
+  "alternate_phone": "+1987654321",
+  "website": "https://smithfarms.com",
+  "total_land_area": 500.0,
+  "employee_count": 25
+}
+Test Case 2: Hydroponic Farm
+http
+POST /api/v1/farmers
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "full_name": "Sarah Johnson",
+  "date_of_birth": "1990-03-10",
+  "experience_years": 5,
+  "farm_name": "Urban Hydroponics",
+  "farm_description": "Modern hydroponic farm in urban setting",
+  "farm_type": "hydroponic",
+  "certifications": [],
+  "address": "321 Tech Park Drive",
+  "city": "San Francisco",
+  "state": "California",
+  "country": "USA",
+  "zip_code": "94101",
+  "latitude": 37.7749,
+  "longitude": -122.4194,
+  "alternate_phone": "+14155551234",
+  "website": "https://urbanhydroponics.com",
+  "total_land_area": 2.5,
+  "employee_count": 3
+}
+Test Case 3: Aquaponic Farm with Multiple Certifications
+http
+POST /api/v1/farmers
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "full_name": "Maria Garcia",
+  "date_of_birth": "1982-11-30",
+  "experience_years": 8,
+  "farm_name": "Eco Aquaponics",
+  "farm_description": "Sustainable aquaponic farm combining fish and vegetable production",
+  "farm_type": "aquaponic",
+  "certifications": ["usda_organic", "eu_organic", "fair_trade"],
+  "address": "654 Sustainable Lane",
+  "city": "Portland",
+  "state": "Oregon",
+  "country": "USA",
+  "zip_code": "97201",
+  "latitude": 45.5152,
+  "longitude": -122.6784,
+  "alternate_phone": "+15035556789",
+  "website": "https://ecoaquaponics.com",
+  "total_land_area": 10.0,
+  "employee_count": 6
+}
+🔍 COMPREHENSIVE TESTING SCENARIOS
+Scenario 1: Complete Farmer Lifecycle
+Create farmer profile
+
+Get my profile to verify creation
+
+Update profile with new information
+
+Get profile again to verify updates
+
+Get statistics
+
+Search for the farmer publicly
+
+Delete profile (if needed)
+
+Scenario 2: Filtering and Search Testing
+http
+# Get organic farms in California with high ratings
+GET /api/v1/farmers?farm_type=organic&state=California&min_rating=4.5&page=1&page_size=5
+
+# Search for farms with "organic" in name or description
+GET /api/v1/farmers/search?q=organic&page=1&size=10
+
+# Get verified premium farms
+GET /api/v1/farmers?is_verified=true&is_premium=true&sort_by=rating&sort_order=desc
+Scenario 3: Location-based Testing
+http
+# Find farms near Chicago
+GET /api/v1/farmers/nearby?lat=41.8781&lng=-87.6298&radius=100
+
+# Find farms near New York
+GET /api/v1/farmers/nearby?lat=40.7128&lng=-74.0060&radius=50
+⚠️ ERROR TESTING CASES
+1. Invalid Data Validation
+http
+POST /api/v1/farmers
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "full_name": "",  // Empty name
+  "date_of_birth": "invalid-date",  // Wrong format
+  "experience_years": -5,  // Negative experience
+  "farm_name": "A",  // Too short
+  "latitude": 200,  // Invalid latitude
+  "longitude": -200  // Invalid longitude
+}
+2. Duplicate Farmer Profile
+http
+POST /api/v1/farmers
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "full_name": "John Doe",
+  "date_of_birth": "1985-05-15",
+  "experience_years": 10,
+  "farm_name": "Duplicate Farm",
+  "farm_type": "organic",
+  "address": "123 Test Rd",
+  "city": "Test City",
+  "state": "Test State",
+  "country": "USA"
+}
+3. Unauthorized Access
+http
+GET /api/v1/farmers/me/profile
+# Without Authorization header
+4. Invalid Farmer ID
+http
+GET /api/v1/farmers/invalid-uuid-here
+📋 POSTMAN COLLECTION EXPORT
+You can create a Postman collection with these requests. Here's the structure:
+
+Collection Name: AgroKonnect Farmer API
+
+Folders:
+
+✅ Authentication
+
+👨‍🌾 Farmer Profile (Protected)
+
+📄 Public Farmer Endpoints
+
+📊 Statistics
+
+👑 Admin Functions
+
+🧪 Test Data
+
+⚠️ Error Testing
+
+Environment Variables:
+
+json
+{
+  "base_url": "http://localhost:8080/api/v1",
+  "jwt_token": "your_jwt_token_here",
+  "admin_jwt_token": "admin_jwt_token_here", 
+  "farmer_id": "created_farmer_id_here"
+}
+🎯 QUICK TESTING CHECKLIST
+Create farmer profile (POST /farmers)
+
+Get my profile (GET /farmers/me/profile)
+
+Update profile (PUT /farmers/me)
+
+Get all farmers with filters (GET /farmers)
+
+Search farmers (GET /farmers/search)
+
+Get nearby farmers (GET /farmers/nearby)
+
+Get farmer by ID (GET /farmers/:id)
+
+Get statistics (GET /farmers/me/stats)
+
+Verify farmer as admin (PUT /farmers/:id/verify)
+
+Delete profile (DELETE /farmers/me)
