@@ -2,6 +2,7 @@ package routes
 
 import (
 	"agro_konnect/internal/auth/middleware"
+	farmerRepository "agro_konnect/internal/farmer/repository"
 	"agro_konnect/internal/product/handler"
 	"agro_konnect/internal/product/repository"
 	"agro_konnect/internal/product/service"
@@ -13,7 +14,8 @@ import (
 func SetupProductRoutes(router *gin.RouterGroup, db *gorm.DB, authMiddleware *middleware.AuthMiddleware, uploadDir string) {
 	// Initialize product dependencies
 	productRepo := repository.NewProductRepository(db)
-	productService := service.NewProductService(productRepo)
+	farmerRepo := farmerRepository.NewFarmerRepository(db)               // Add farmer repository
+	productService := service.NewProductService(productRepo, farmerRepo) // Update service initialization
 	productHandler := handler.NewProductHandler(productService)
 
 	// Initialize image handler

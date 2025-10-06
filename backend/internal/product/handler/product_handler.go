@@ -35,10 +35,11 @@ func NewProductHandler(productService service.ProductService) *ProductHandler {
 // @Success 201 {object} utils.SuccessResponse{data=model.Product} "Product created successfully"
 // @Failure 400 {object} utils.ErrorResponse "Invalid input data"
 // @Failure 401 {object} utils.ErrorResponse "Unauthorized"
+// @Failure 404 {object} utils.ErrorResponse "Farmer profile not found"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /products [post]
 func (h *ProductHandler) CreateProduct(c *gin.Context) {
-	farmerID, err := GetFarmerIDFromContext(c)
+	userID, err := GetUserIDFromContext(c)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusUnauthorized, err.Error())
 		return
@@ -56,11 +57,13 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	product, err := h.productService.CreateProduct(c.Request.Context(), farmerID, &req)
+	product, err := h.productService.CreateProduct(c.Request.Context(), userID, &req)
 	if err != nil {
 		switch err {
 		case service.ErrInvalidProductData, service.ErrInvalidHarvestDate:
 			utils.RespondWithError(c, http.StatusBadRequest, err.Error())
+		case service.ErrFarmerNotFound:
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found. Please create a farmer profile first")
 		default:
 			utils.RespondWithError(c, http.StatusInternalServerError, "Failed to create product")
 		}
@@ -110,18 +113,24 @@ func (h *ProductHandler) GetProductByID(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} utils.SuccessResponse{data=[]dto.ProductResponse} "Products retrieved successfully"
 // @Failure 401 {object} utils.ErrorResponse "Unauthorized"
+// @Failure 404 {object} utils.ErrorResponse "Farmer profile not found"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /products/me [get]
 func (h *ProductHandler) GetMyProducts(c *gin.Context) {
-	farmerID, err := GetFarmerIDFromContext(c)
+	userID, err := GetUserIDFromContext(c)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	products, err := h.productService.GetProductsByFarmer(c.Request.Context(), farmerID)
+	products, err := h.productService.GetProductsByFarmer(c.Request.Context(), userID)
 	if err != nil {
-		utils.RespondWithError(c, http.StatusInternalServerError, "Failed to retrieve products")
+		switch err {
+		case service.ErrFarmerNotFound:
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
+		default:
+			utils.RespondWithError(c, http.StatusInternalServerError, "Failed to retrieve products")
+		}
 		return
 	}
 
@@ -145,7 +154,7 @@ func (h *ProductHandler) GetMyProducts(c *gin.Context) {
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /products/{id} [put]
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
-	farmerID, err := GetFarmerIDFromContext(c)
+	userID, err := GetUserIDFromContext(c)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusUnauthorized, err.Error())
 		return
@@ -169,13 +178,15 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	product, err := h.productService.UpdateProduct(c.Request.Context(), productID, farmerID, &req)
+	product, err := h.productService.UpdateProduct(c.Request.Context(), productID, userID, &req)
 	if err != nil {
 		switch err {
 		case service.ErrProductNotFound:
 			utils.RespondWithError(c, http.StatusNotFound, err.Error())
 		case service.ErrUnauthorizedAccess:
 			utils.RespondWithError(c, http.StatusForbidden, err.Error())
+		case service.ErrFarmerNotFound:
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
 		default:
 			utils.RespondWithError(c, http.StatusInternalServerError, "Failed to update product")
 		}
@@ -200,7 +211,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /products/{id} [delete]
 func (h *ProductHandler) DeleteProduct(c *gin.Context) {
-	farmerID, err := GetFarmerIDFromContext(c)
+	userID, err := GetUserIDFromContext(c)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusUnauthorized, err.Error())
 		return
@@ -212,12 +223,14 @@ func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	if err := h.productService.DeleteProduct(c.Request.Context(), productID, farmerID); err != nil {
+	if err := h.productService.DeleteProduct(c.Request.Context(), productID, userID); err != nil {
 		switch err {
 		case service.ErrProductNotFound:
 			utils.RespondWithError(c, http.StatusNotFound, err.Error())
 		case service.ErrUnauthorizedAccess:
 			utils.RespondWithError(c, http.StatusForbidden, err.Error())
+		case service.ErrFarmerNotFound:
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
 		default:
 			utils.RespondWithError(c, http.StatusInternalServerError, "Failed to delete product")
 		}
@@ -312,7 +325,7 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /products/{id}/stock [put]
 func (h *ProductHandler) UpdateStock(c *gin.Context) {
-	farmerID, err := GetFarmerIDFromContext(c)
+	userID, err := GetUserIDFromContext(c)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusUnauthorized, err.Error())
 		return
@@ -332,12 +345,14 @@ func (h *ProductHandler) UpdateStock(c *gin.Context) {
 		return
 	}
 
-	if err := h.productService.UpdateStock(c.Request.Context(), productID, farmerID, req.Quantity); err != nil {
+	if err := h.productService.UpdateStock(c.Request.Context(), productID, userID, req.Quantity); err != nil {
 		switch err {
 		case service.ErrProductNotFound:
 			utils.RespondWithError(c, http.StatusNotFound, err.Error())
 		case service.ErrUnauthorizedAccess:
 			utils.RespondWithError(c, http.StatusForbidden, err.Error())
+		case service.ErrFarmerNotFound:
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
 		default:
 			utils.RespondWithError(c, http.StatusInternalServerError, "Failed to update stock")
 		}
@@ -364,7 +379,7 @@ func (h *ProductHandler) UpdateStock(c *gin.Context) {
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /products/{id}/status [put]
 func (h *ProductHandler) UpdateStatus(c *gin.Context) {
-	farmerID, err := GetFarmerIDFromContext(c)
+	userID, err := GetUserIDFromContext(c)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusUnauthorized, err.Error())
 		return
@@ -385,12 +400,14 @@ func (h *ProductHandler) UpdateStatus(c *gin.Context) {
 	}
 
 	status := model.ProductStatus(req.Status)
-	if err := h.productService.UpdateProductStatus(c.Request.Context(), productID, farmerID, status); err != nil {
+	if err := h.productService.UpdateProductStatus(c.Request.Context(), productID, userID, status); err != nil {
 		switch err {
 		case service.ErrProductNotFound:
 			utils.RespondWithError(c, http.StatusNotFound, err.Error())
 		case service.ErrUnauthorizedAccess:
 			utils.RespondWithError(c, http.StatusForbidden, err.Error())
+		case service.ErrFarmerNotFound:
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
 		default:
 			utils.RespondWithError(c, http.StatusInternalServerError, "Failed to update status")
 		}
@@ -490,8 +507,8 @@ func (h *ProductHandler) SearchProducts(c *gin.Context) {
 	utils.RespondWithSuccess(c, http.StatusOK, "Products retrieved successfully", response)
 }
 
-// GetFarmerIDFromContext extracts farmer ID from Gin context
-func GetFarmerIDFromContext(c *gin.Context) (uuid.UUID, error) {
+// GetUserIDFromContext extracts user ID from Gin context
+func GetUserIDFromContext(c *gin.Context) (uuid.UUID, error) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		return uuid.Nil, service.ErrUnauthorizedAccess

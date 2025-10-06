@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	dto "agro_konnect/internal/product/dto"
@@ -34,11 +36,47 @@ type productRepository struct {
 }
 
 func NewProductRepository(db *gorm.DB) ProductRepository {
-	return &productRepository{db: db}
+	return &productRepository{db: db.Debug()} // Removed duplicate assignment
 }
 
 func (r *productRepository) Create(ctx context.Context, product *model.Product) error {
-	return r.db.WithContext(ctx).Create(product).Error
+	log.Printf("=== PRODUCT REPOSITORY CREATE ===")
+	log.Printf("Product ID: %s", product.ID)
+	log.Printf("Product Name: %s", product.Name)
+	log.Printf("Farmer ID: %s", product.FarmerID)
+	log.Printf("Images: %+v", product.Images)
+	log.Printf("Images type: %T", product.Images)
+
+	// Test the database connection first
+	sqlDB, err := r.db.DB()
+	if err != nil {
+		log.Printf("Error getting database connection: %v", err)
+		return err
+	}
+
+	if err := sqlDB.Ping(); err != nil {
+		log.Printf("Database ping failed: %v", err)
+		return err
+	}
+
+	err = r.db.WithContext(ctx).Create(product).Error
+	if err != nil {
+		log.Printf("=== DATABASE ERROR ===")
+		log.Printf("Error: %v", err)
+		log.Printf("Error type: %T", err)
+
+		// Check for specific database errors
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			return fmt.Errorf("product with this name already exists: %w", err)
+		}
+		if strings.Contains(err.Error(), "foreign key constraint") {
+			return fmt.Errorf("invalid farmer ID: %w", err)
+		}
+		if strings.Contains(err.Error(), "Data too long") {
+			return fmt.Errorf("data too long for one of the fields: %w", err)
+		}
+	}
+	return err
 }
 
 func (r *productRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.Product, error) {

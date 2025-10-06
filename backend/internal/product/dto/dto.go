@@ -7,37 +7,36 @@ import (
 	"github.com/google/uuid"
 )
 
-// Request DTOs
 type CreateProductRequest struct {
-	Name        string                `json:"name" validate:"required"`
+	Name        string                `json:"name" validate:"required,min=2,max=100"`
 	Category    model.ProductCategory `json:"category" validate:"required,oneof=fruits vegetables grains dairy poultry livestock spices herbs"`
-	Subcategory string                `json:"subcategory"`
-	Description string                `json:"description"`
+	Subcategory string                `json:"subcategory" validate:"max=50"`
+	Description string                `json:"description" validate:"max=1000"`
 	Images      []string              `json:"images"`
 
-	PricePerUnit   float64 `json:"price_per_unit" validate:"min=0"`
-	Unit           string  `json:"unit" validate:"required"`
+	PricePerUnit   float64 `json:"price_per_unit" validate:"required,min=0.01"`
+	Unit           string  `json:"unit" validate:"required,min=1,max=20"`
 	AvailableStock float64 `json:"available_stock" validate:"min=0"`
-	MinOrder       float64 `json:"min_order" validate:"min=0"`
+	MinOrder       float64 `json:"min_order" validate:"min=0.01"`
 	MaxOrder       float64 `json:"max_order" validate:"min=0"`
 
-	QualityGrade         model.QualityGrade `json:"quality_grade" validate:"oneof=premium standard economy"`
+	QualityGrade         model.QualityGrade `json:"quality_grade" validate:"omitempty,oneof=premium standard economy"`
 	Organic              bool               `json:"organic"`
 	Certified            bool               `json:"certified"`
-	CertificationDetails string             `json:"certification_details"`
+	CertificationDetails string             `json:"certification_details" validate:"max=500"`
 
-	HarvestDate string `json:"harvest_date"`
-	ShelfLife   int    `json:"shelf_life" validate:"min=1"`
-	StorageTips string `json:"storage_tips"`
+	HarvestDate string `json:"harvest_date" validate:"omitempty,datetime=2006-01-02"`
+	ShelfLife   int    `json:"shelf_life" validate:"min=1,max=365"`
+	StorageTips string `json:"storage_tips" validate:"max=500"`
 
-	WeightRange string `json:"weight_range"`
-	Color       string `json:"color"`
-	Size        string `json:"size"`
-	Variety     string `json:"variety"`
+	WeightRange string `json:"weight_range" validate:"max=50"`
+	Color       string `json:"color" validate:"max=30"`
+	Size        string `json:"size" validate:"max=30"`
+	Variety     string `json:"variety" validate:"max=50"`
 
-	FarmLocation string  `json:"farm_location"`
-	Latitude     float64 `json:"latitude"`
-	Longitude    float64 `json:"longitude"`
+	FarmLocation string  `json:"farm_location" validate:"max=200"`
+	Latitude     float64 `json:"latitude" validate:"latitude"`
+	Longitude    float64 `json:"longitude" validate:"longitude"`
 }
 
 type UpdateProductRequest struct {

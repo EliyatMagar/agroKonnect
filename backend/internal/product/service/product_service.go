@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math"
 	"strings"
 	"time"
 
+	farmerRepo "agro_konnect/internal/farmer/repository"
 	dto "agro_konnect/internal/product/dto"
 	model "agro_konnect/internal/product/model"
 	"agro_konnect/internal/product/repository"
@@ -22,17 +24,18 @@ var (
 	ErrUnauthorizedAccess = errors.New("unauthorized access to product")
 	ErrInvalidHarvestDate = errors.New("invalid harvest date")
 	ErrProductNotActive   = errors.New("product is not active")
+	ErrFarmerNotFound     = errors.New("farmer profile not found")
 )
 
 type ProductService interface {
-	CreateProduct(ctx context.Context, farmerID uuid.UUID, req *dto.CreateProductRequest) (*model.Product, error)
+	CreateProduct(ctx context.Context, userID uuid.UUID, req *dto.CreateProductRequest) (*model.Product, error)
 	GetProductByID(ctx context.Context, id uuid.UUID) (*dto.ProductResponse, error)
-	GetProductsByFarmer(ctx context.Context, farmerID uuid.UUID) ([]*dto.ProductResponse, error)
-	UpdateProduct(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID, req *dto.UpdateProductRequest) (*dto.ProductResponse, error)
-	DeleteProduct(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID) error
+	GetProductsByFarmer(ctx context.Context, userID uuid.UUID) ([]*dto.ProductResponse, error)
+	UpdateProduct(ctx context.Context, productID uuid.UUID, userID uuid.UUID, req *dto.UpdateProductRequest) (*dto.ProductResponse, error)
+	DeleteProduct(ctx context.Context, productID uuid.UUID, userID uuid.UUID) error
 	GetAllProducts(ctx context.Context, filters dto.ProductFilterRequest) (*dto.ProductListResponse, error)
-	UpdateStock(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID, quantity float64) error
-	UpdateProductStatus(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID, status model.ProductStatus) error
+	UpdateStock(ctx context.Context, productID uuid.UUID, userID uuid.UUID, quantity float64) error
+	UpdateProductStatus(ctx context.Context, productID uuid.UUID, userID uuid.UUID, status model.ProductStatus) error
 	GetFeaturedProducts(ctx context.Context, limit int) ([]*dto.ProductResponse, error)
 	GetProductsByCategory(ctx context.Context, category model.ProductCategory, page, pageSize int) (*dto.ProductListResponse, error)
 	SearchProducts(ctx context.Context, query string, page, pageSize int) (*dto.ProductListResponse, error)
@@ -41,43 +44,94 @@ type ProductService interface {
 
 type productService struct {
 	productRepo repository.ProductRepository
+	farmerRepo  farmerRepo.FarmerRepository
 }
 
-func NewProductService(productRepo repository.ProductRepository) ProductService {
+func NewProductService(productRepo repository.ProductRepository, farmerRepo farmerRepo.FarmerRepository) ProductService {
 	return &productService{
 		productRepo: productRepo,
+		farmerRepo:  farmerRepo,
 	}
 }
 
-func (s *productService) CreateProduct(ctx context.Context, farmerID uuid.UUID, req *dto.CreateProductRequest) (*model.Product, error) {
-	log.Printf("Creating product for farmer: %s", farmerID)
+func (s *productService) CreateProduct(ctx context.Context, userID uuid.UUID, req *dto.CreateProductRequest) (*model.Product, error) {
+	log.Printf("Creating product for user: %s", userID)
 
-	// Validate harvest date
-	harvestDate, err := time.Parse("2006-01-02", req.HarvestDate)
+	// Get farmer for this user
+	farmer, err := s.farmerRepo.FindByUserID(ctx, userID)
 	if err != nil {
-		return nil, ErrInvalidHarvestDate
+		return nil, fmt.Errorf("failed to find farmer profile: %w", err)
+	}
+	if farmer == nil {
+		return nil, ErrFarmerNotFound
+	}
+
+	log.Printf("Found farmer: %s (ID: %s) for user: %s", farmer.FarmName, farmer.ID, userID)
+
+	// Use the actual farmer ID, not the user ID
+	farmerID := farmer.ID
+
+	// Parse harvest date
+	var harvestDate time.Time
+	if req.HarvestDate != "" {
+		harvestDate, err = time.Parse("2006-01-02", req.HarvestDate)
+		if err != nil {
+			return nil, ErrInvalidHarvestDate
+		}
+
+		// Allow past harvest dates but not future dates beyond today
+		if harvestDate.After(time.Now()) {
+			return nil, errors.New("harvest date cannot be in the future")
+		}
+	} else {
+		// If no harvest date provided, use current date
+		harvestDate = time.Now()
 	}
 
 	// Calculate expiry date
-	expiryDate := harvestDate.Add(time.Duration(req.ShelfLife) * 24 * time.Hour)
+	var expiryDate time.Time
+	if req.ShelfLife > 0 {
+		expiryDate = harvestDate.Add(time.Duration(req.ShelfLife) * 24 * time.Hour)
 
-	// Validate expiry date is not in the past
-	if expiryDate.Before(time.Now()) {
-		return nil, errors.New("product expiry date cannot be in the past")
+		// If expiry date is in the past, extend it to be at least 7 days from now
+		if expiryDate.Before(time.Now()) {
+			expiryDate = time.Now().Add(7 * 24 * time.Hour)
+			log.Printf("Adjusted expiry date to: %s", expiryDate.Format("2006-01-02"))
+		}
+	} else {
+		// Default expiry: 30 days from harvest date
+		expiryDate = harvestDate.Add(30 * 24 * time.Hour)
 	}
 
 	// Validate stock and pricing
 	if req.AvailableStock < 0 {
 		return nil, errors.New("available stock cannot be negative")
 	}
-	if req.PricePerUnit < 0 {
-		return nil, errors.New("price per unit cannot be negative")
+	if req.PricePerUnit <= 0 {
+		return nil, errors.New("price per unit must be positive")
 	}
-	if req.MinOrder < 0 {
-		return nil, errors.New("minimum order cannot be negative")
+	if req.MinOrder <= 0 {
+		return nil, errors.New("minimum order must be positive")
 	}
-	if req.MaxOrder < 0 || (req.MaxOrder > 0 && req.MaxOrder < req.MinOrder) {
+	if req.MaxOrder > 0 && req.MaxOrder < req.MinOrder {
 		return nil, errors.New("maximum order must be greater than minimum order")
+	}
+
+	// Set default values
+	if req.Unit == "" {
+		req.Unit = "kg"
+	}
+	if req.MinOrder == 0 {
+		req.MinOrder = 1
+	}
+	if req.QualityGrade == "" {
+		req.QualityGrade = model.GradeStandard
+	}
+
+	// Convert images to JSONSlice
+	var images model.JSONSlice
+	if req.Images != nil {
+		images = model.JSONSlice(req.Images)
 	}
 
 	product := &model.Product{
@@ -87,7 +141,7 @@ func (s *productService) CreateProduct(ctx context.Context, farmerID uuid.UUID, 
 		Category:             req.Category,
 		Subcategory:          strings.TrimSpace(req.Subcategory),
 		Description:          strings.TrimSpace(req.Description),
-		Images:               req.Images,
+		Images:               images,
 		PricePerUnit:         req.PricePerUnit,
 		Unit:                 strings.TrimSpace(req.Unit),
 		AvailableStock:       req.AvailableStock,
@@ -118,10 +172,10 @@ func (s *productService) CreateProduct(ctx context.Context, farmerID uuid.UUID, 
 
 	if err := s.productRepo.Create(ctx, product); err != nil {
 		log.Printf("Error creating product: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create product: %w", err)
 	}
 
-	log.Printf("Successfully created product with ID: %s", product.ID)
+	log.Printf("Successfully created product with ID: %s for farmer: %s", product.ID, farmerID)
 	return product, nil
 }
 
@@ -137,8 +191,14 @@ func (s *productService) GetProductByID(ctx context.Context, id uuid.UUID) (*dto
 	return s.toProductResponse(product), nil
 }
 
-func (s *productService) GetProductsByFarmer(ctx context.Context, farmerID uuid.UUID) ([]*dto.ProductResponse, error) {
-	products, err := s.productRepo.FindByFarmerID(ctx, farmerID)
+func (s *productService) GetProductsByFarmer(ctx context.Context, userID uuid.UUID) ([]*dto.ProductResponse, error) {
+	// Get farmer for this user
+	farmer, err := s.farmerRepo.FindByUserID(ctx, userID)
+	if err != nil || farmer == nil {
+		return nil, ErrFarmerNotFound
+	}
+
+	products, err := s.productRepo.FindByFarmerID(ctx, farmer.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +211,13 @@ func (s *productService) GetProductsByFarmer(ctx context.Context, farmerID uuid.
 	return responses, nil
 }
 
-func (s *productService) UpdateProduct(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID, req *dto.UpdateProductRequest) (*dto.ProductResponse, error) {
+func (s *productService) UpdateProduct(ctx context.Context, productID uuid.UUID, userID uuid.UUID, req *dto.UpdateProductRequest) (*dto.ProductResponse, error) {
+	// Get farmer for this user
+	farmer, err := s.farmerRepo.FindByUserID(ctx, userID)
+	if err != nil || farmer == nil {
+		return nil, ErrFarmerNotFound
+	}
+
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return nil, err
@@ -161,7 +227,7 @@ func (s *productService) UpdateProduct(ctx context.Context, productID uuid.UUID,
 	}
 
 	// Check if the farmer owns this product
-	if product.FarmerID != farmerID {
+	if product.FarmerID != farmer.ID {
 		return nil, ErrUnauthorizedAccess
 	}
 
@@ -173,7 +239,7 @@ func (s *productService) UpdateProduct(ctx context.Context, productID uuid.UUID,
 		product.Description = strings.TrimSpace(req.Description)
 	}
 	if req.Images != nil {
-		product.Images = req.Images
+		product.Images = model.JSONSlice(req.Images)
 	}
 	if req.PricePerUnit > 0 {
 		product.PricePerUnit = req.PricePerUnit
@@ -203,7 +269,13 @@ func (s *productService) UpdateProduct(ctx context.Context, productID uuid.UUID,
 	return s.toProductResponse(product), nil
 }
 
-func (s *productService) DeleteProduct(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID) error {
+func (s *productService) DeleteProduct(ctx context.Context, productID uuid.UUID, userID uuid.UUID) error {
+	// Get farmer for this user
+	farmer, err := s.farmerRepo.FindByUserID(ctx, userID)
+	if err != nil || farmer == nil {
+		return ErrFarmerNotFound
+	}
+
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return err
@@ -213,7 +285,7 @@ func (s *productService) DeleteProduct(ctx context.Context, productID uuid.UUID,
 	}
 
 	// Check if the farmer owns this product
-	if product.FarmerID != farmerID {
+	if product.FarmerID != farmer.ID {
 		return ErrUnauthorizedAccess
 	}
 
@@ -251,7 +323,13 @@ func (s *productService) GetAllProducts(ctx context.Context, filters dto.Product
 	}, nil
 }
 
-func (s *productService) UpdateStock(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID, quantity float64) error {
+func (s *productService) UpdateStock(ctx context.Context, productID uuid.UUID, userID uuid.UUID, quantity float64) error {
+	// Get farmer for this user
+	farmer, err := s.farmerRepo.FindByUserID(ctx, userID)
+	if err != nil || farmer == nil {
+		return ErrFarmerNotFound
+	}
+
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return err
@@ -261,7 +339,7 @@ func (s *productService) UpdateStock(ctx context.Context, productID uuid.UUID, f
 	}
 
 	// Check if the farmer owns this product
-	if product.FarmerID != farmerID {
+	if product.FarmerID != farmer.ID {
 		return ErrUnauthorizedAccess
 	}
 
@@ -272,7 +350,13 @@ func (s *productService) UpdateStock(ctx context.Context, productID uuid.UUID, f
 	return s.productRepo.UpdateStock(ctx, productID, quantity)
 }
 
-func (s *productService) UpdateProductStatus(ctx context.Context, productID uuid.UUID, farmerID uuid.UUID, status model.ProductStatus) error {
+func (s *productService) UpdateProductStatus(ctx context.Context, productID uuid.UUID, userID uuid.UUID, status model.ProductStatus) error {
+	// Get farmer for this user
+	farmer, err := s.farmerRepo.FindByUserID(ctx, userID)
+	if err != nil || farmer == nil {
+		return ErrFarmerNotFound
+	}
+
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return err
@@ -282,7 +366,7 @@ func (s *productService) UpdateProductStatus(ctx context.Context, productID uuid
 	}
 
 	// Check if the farmer owns this product
-	if product.FarmerID != farmerID {
+	if product.FarmerID != farmer.ID {
 		return ErrUnauthorizedAccess
 	}
 
@@ -368,6 +452,12 @@ func (s *productService) BulkUpdateExpiredProducts(ctx context.Context) error {
 
 // Helper methods
 func (s *productService) toProductResponse(product *model.Product) *dto.ProductResponse {
+	// Convert JSONSlice back to []string for response
+	var images []string
+	if product.Images != nil {
+		images = []string(product.Images)
+	}
+
 	return &dto.ProductResponse{
 		ID:                   product.ID,
 		FarmerID:             product.FarmerID,
@@ -377,7 +467,7 @@ func (s *productService) toProductResponse(product *model.Product) *dto.ProductR
 		Category:             product.Category,
 		Subcategory:          product.Subcategory,
 		Description:          product.Description,
-		Images:               product.Images,
+		Images:               images,
 		PricePerUnit:         product.PricePerUnit,
 		Unit:                 product.Unit,
 		AvailableStock:       product.AvailableStock,

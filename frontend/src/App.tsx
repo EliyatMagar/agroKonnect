@@ -1,21 +1,21 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuthContext } from "./features/auth/context/AuthProvider"
-import { ProtectedRoute } from './ProtectedRoute'
-import LoginPage from './features/auth/pages/LoginPage'
-import SignUpPage from './features/auth/pages/SignUpPage'
-import {ForgotPasswordForm} from './features/auth/ui/ForgotPasswordForm';
+import { AuthProvider, useAuthContext } from "./features/auth/context/AuthProvider";
+import { ProtectedRoute } from './ProtectedRoute';
+import LoginPage from './features/auth/pages/LoginPage';
+import SignUpPage from './features/auth/pages/SignUpPage';
+import { ForgotPasswordForm } from './features/auth/ui/ForgotPasswordForm';
 
-import {DashboardRouter} from './Dashboard/DashboardRouter'
+import { DashboardRouter } from './Dashboard/DashboardRouter';
 
-//Import dashboard components
+// Import dashboard components
+import { FarmerDashboard } from './Dashboard/farmer/FarmerDashboard';
+import { BuyerDashboard } from './Dashboard/buyer/BuyerDashboard';
+import { VendorDashboard } from './Dashboard/vendor/VendorDashboard';
+import { TransporterDashboard } from './Dashboard/transporter/TransporterDashboard';
 
-import {FarmerDashboard} from './Dashboard/farmer/FarmerDashboard';
-import {BuyerDashboard} from './Dashboard/buyer/BuyerDashboard';
-import {VendorDashboard} from './Dashboard/vendor/VendorDashboard';
-import {TransporterDashboard} from './Dashboard/transporter/TransporterDashboard';
-
+import { CreateFarmerProfile } from './Profile/farmer/CreateFarmerProfile';
 
 const queryClient = new QueryClient();
 
@@ -31,7 +31,7 @@ const Home: React.FC = () => {
   return <DashboardRouter />;
 };
 
-//Individual dashboard pages for direct navigation
+// Individual dashboard pages for direct navigation
 const FarmerDashboardPage: React.FC = () => {
   const { user } = useAuthContext();
   
@@ -42,7 +42,6 @@ const FarmerDashboardPage: React.FC = () => {
   return <FarmerDashboard />;
 };
 
-//Buyer
 const BuyerDashboardPage: React.FC = () => {
   const { user } = useAuthContext();
   
@@ -73,17 +72,56 @@ const TransporterDashboardPage: React.FC = () => {
   return <TransporterDashboard />;
 };
 
-
-
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
           <Routes>
+            {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+
+            {/* Profile Creation Routes */}
+            <Route 
+              path="/farmer/create-profile"
+              element={
+                <ProtectedRoute requiredRole="farmer">
+                  <CreateFarmerProfile />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Add placeholder routes for other roles - you can implement these later */}
+            {/* <Route 
+              path="/vendor/create-profile"
+              element={
+                <ProtectedRoute requiredRole="vendor">
+                  <div>Vendor Profile Creation - Coming Soon</div>
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route 
+              path="/transporter/create-profile"
+              element={
+                <ProtectedRoute requiredRole="transporter">
+                  <div>Transporter Profile Creation - Coming Soon</div>
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route 
+              path="/buyer/create-profile"
+              element={
+                <ProtectedRoute requiredRole="buyer">
+                  <div>Buyer Profile Creation - Coming Soon</div>
+                </ProtectedRoute>
+              }
+            /> */}
+
+            {/* Main App Routes */}
             <Route
               path="/"
               element={
@@ -92,10 +130,11 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+            
             <Route
               path="/farmer/dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="farmer">
                   <FarmerDashboardPage />
                 </ProtectedRoute>
               }
@@ -104,7 +143,7 @@ const App: React.FC = () => {
             <Route
               path="/buyer/dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="buyer">
                   <BuyerDashboardPage />
                 </ProtectedRoute>
               }
@@ -113,7 +152,7 @@ const App: React.FC = () => {
             <Route
               path="/transporter/dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="transporter">
                   <TransporterDashboardPage />
                 </ProtectedRoute>
               }
@@ -122,12 +161,14 @@ const App: React.FC = () => {
             <Route
               path="/vendor/dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="vendor">
                   <VendorDashboardPage />
                 </ProtectedRoute>
               }
             />
 
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Router>
       </AuthProvider>

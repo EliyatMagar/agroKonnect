@@ -5,6 +5,7 @@ import (
 	"agro_konnect/internal/auth/model"
 	"agro_konnect/internal/auth/repository"
 	"agro_konnect/internal/auth/utils"
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -33,6 +34,7 @@ type AuthService interface {
 	ResetPassword(req *dto.ResetPasswordRequest) error
 	ChangePassword(userID uuid.UUID, req *dto.ChangePasswordRequest) error
 	RefreshToken(refreshToken string) (*dto.AuthResponse, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (*model.User, error) // ✅ FIXED: Added this method
 	GetUserProfile(userID uuid.UUID) (*dto.UserResponse, error)
 	GenerateVerificationCode(userID uuid.UUID, codeType string) (*model.VerificationCode, error)
 }
@@ -56,6 +58,20 @@ func NewAuthService(
 		jwtManager:       jwtManager,
 		emailService:     emailService,
 	}
+}
+
+// ✅ FIXED: Add the missing GetUserByID method
+func (s *authService) GetUserByID(ctx context.Context, userID uuid.UUID) (*model.User, error) {
+	fmt.Printf("🔧 GetUserByID called with userID: %s\n", userID.String())
+
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		fmt.Printf("❌ GetUserByID error: %v\n", err)
+		return nil, ErrUserNotFound
+	}
+
+	fmt.Printf("✅ GetUserByID found user: %s (%s)\n", user.Email, user.Role)
+	return user, nil
 }
 
 func (s *authService) Register(req *dto.RegisterRequest) (*model.User, error) {

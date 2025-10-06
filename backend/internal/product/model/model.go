@@ -1,6 +1,9 @@
 package product
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,6 +40,32 @@ const (
 	GradeEconomy  QualityGrade = "economy"
 )
 
+// JSONSlice handles string array/slice for JSON storage
+type JSONSlice []string
+
+func (j *JSONSlice) Scan(value interface{}) error {
+	if value == nil {
+		*j = JSONSlice{}
+		return nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return json.Unmarshal(v, j)
+	case string:
+		return json.Unmarshal([]byte(v), j)
+	default:
+		return errors.New("invalid type for JSONSlice")
+	}
+}
+
+func (j JSONSlice) Value() (driver.Value, error) {
+	if j == nil {
+		return json.Marshal([]string{})
+	}
+	return json.Marshal(j)
+}
+
 type Product struct {
 	ID       uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
 	FarmerID uuid.UUID `gorm:"not null" json:"farmer_id"`
@@ -46,7 +75,7 @@ type Product struct {
 	Category    ProductCategory `gorm:"type:varchar(50);not null" json:"category"`
 	Subcategory string          `json:"subcategory"`
 	Description string          `json:"description"`
-	Images      []string        `gorm:"type:text[]" json:"images"`
+	Images      JSONSlice       `gorm:"type:json" json:"images"`
 
 	// Pricing & Quantity
 	PricePerUnit   float64 `gorm:"type:decimal(10,2);not null" json:"price_per_unit"`
@@ -95,10 +124,10 @@ type ProductReview struct {
 	BuyerID   uuid.UUID `gorm:"not null" json:"buyer_id"`
 	OrderID   uuid.UUID `gorm:"not null" json:"order_id"`
 
-	Rating  int      `gorm:"not null" json:"rating" validate:"min=1,max=5"`
-	Title   string   `json:"title"`
-	Comment string   `json:"comment"`
-	Images  []string `gorm:"type:text[]" json:"images"`
+	Rating  int       `gorm:"not null" json:"rating" validate:"min=1,max=5"`
+	Title   string    `json:"title"`
+	Comment string    `json:"comment"`
+	Images  JSONSlice `gorm:"type:json" json:"images"`
 
 	QualityRating int `json:"quality_rating"`
 	ValueRating   int `json:"value_rating"`
