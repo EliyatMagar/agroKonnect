@@ -1,3 +1,4 @@
+// features/auth/context/AuthProvider.tsx - UPDATED
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authKeys, useProfile } from '../hooks/useAuth';
@@ -11,6 +12,7 @@ interface AuthContextType {
   hasProfile: boolean;
   profileLoading: boolean;
   userRole: UserRole | null;
+  logout: () => Promise<void>; // Add logout function
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +31,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   } = useProfile();
   
   const { data: farmerProfile, isLoading: farmerProfileLoading } = useMyFarmerProfile();
+
+  // ✅ ADD: Logout function
+  const logout = async (): Promise<void> => {
+    try {
+      console.log('🚪 Logging out user...');
+      
+      // Clear tokens from localStorage
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      
+      // Clear all React Query cache
+      queryClient.clear();
+      
+      // Reset auth state
+      setIsAuthenticated(false);
+      
+      // Dispatch event for other components to handle
+      window.dispatchEvent(new Event('auth-logout'));
+      
+      console.log('✅ Logout successful');
+    } catch (error) {
+      console.error('❌ Logout failed:', error);
+      throw error;
+    }
+  };
 
   // ✅ FIX: Initialize authentication state on app start
   useEffect(() => {
@@ -114,10 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 errorMessage.includes('Session expired');
         
         if (shouldClearTokens) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          setIsAuthenticated(false);
-          queryClient.removeQueries({ queryKey: authKeys.all });
+          // Use the logout function to ensure consistency
+          logout();
         }
       }
     }
@@ -192,6 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasProfile,
     profileLoading,
     userRole: user?.role || null,
+    logout, // Include logout function in context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

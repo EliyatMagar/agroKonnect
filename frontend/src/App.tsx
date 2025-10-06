@@ -131,8 +131,9 @@ const App: React.FC = () => {
               }
             />
             
+            {/* Farmer Dashboard Routes */}
             <Route
-              path="/farmer/dashboard"
+              path="/farmer/*"
               element={
                 <ProtectedRoute requiredRole="farmer">
                   <FarmerDashboardPage />
@@ -140,6 +141,7 @@ const App: React.FC = () => {
               }
             />
 
+            {/* Other Dashboard Routes */}
             <Route
               path="/buyer/dashboard"
               element={

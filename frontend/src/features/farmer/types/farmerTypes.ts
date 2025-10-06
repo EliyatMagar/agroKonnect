@@ -9,7 +9,7 @@ export interface Farmer {
   date_of_birth: string;
   experience_years: number;
   farm_name: string;
-  farm_description?: string;
+  farm_description: string;
   farm_type: FarmType;
   certifications: Certification[];
   address: string;
@@ -47,8 +47,13 @@ export interface FarmerResponse {
   city: string;
   state: string;
   country: string;
+  zip_code?:string
   latitude: number;
   longitude: number;
+  alternate_phone?:string;
+  website?:string;
+  total_land_area:number;
+  employee_count:number;
   is_verified: boolean;
   is_premium: boolean;
   rating: number;
