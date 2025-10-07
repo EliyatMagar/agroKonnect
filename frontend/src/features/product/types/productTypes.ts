@@ -193,6 +193,13 @@ export interface ProductResponse {
   shelf_life: number;
   storage_tips: string;
 
+  weight_range: string;
+  color: string;
+  size: string;
+  variety: string;
+  latitude: number;
+  longitude: number;
+
   status: ProductStatus;
   is_featured: boolean;
   rating: number;
@@ -255,7 +262,7 @@ export interface ProductFormData {
   category: ProductCategory;
   subcategory: string;
   description: string;
-  images: File[];
+  images: (File | string)[];
 
   price_per_unit: number;
   unit: string;
@@ -281,3 +288,7 @@ export interface ProductFormData {
   latitude: number;
   longitude: number;
 }
+
+export type ProductFormSubmission = Omit<CreateProductRequest, 'images'> & {
+  images: string[]; // Only string URLs for API submission
+};

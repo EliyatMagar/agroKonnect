@@ -1,4 +1,3 @@
-// api/productApi.ts
 import type { 
   Product, 
   ProductResponse, 

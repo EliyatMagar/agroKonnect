@@ -4,7 +4,7 @@ import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-r
 import { useMyFarmerProfile } from '../../features/farmer/hooks/farmerHooks';
 import { useAuthContext } from '../../features/auth/context/AuthProvider';
 import { FarmerProfile } from '../../features/farmer/pages/FarmerProfile';
-import { FarmerProducts } from '../../features/farmer/products/FarmerProducts';
+import {ProductManagement} from '../../features/farmer/products/ProductManagement'
 import { FarmerOrders } from '../../features/farmer/orders/FarmerOrders';
 import { FarmerAnalytics } from '../../features/farmer/analytics/FarmerAnalytics';
 
@@ -114,7 +114,7 @@ export const FarmerDashboard: React.FC = () => {
             <Route path="/" element={<DashboardHome farmerProfile={farmerProfile} />} />
             <Route path="/dashboard" element={<DashboardHome farmerProfile={farmerProfile} />} />
             <Route path="/profile" element={<FarmerProfile farmer={farmerProfile} />} />
-            <Route path="/products" element={<FarmerProducts />} />
+            <Route path="/products" element={<ProductManagement />} />
             <Route path="/orders" element={<FarmerOrders />} />
             <Route path="/analytics" element={<FarmerAnalytics />} />
           </Routes>
