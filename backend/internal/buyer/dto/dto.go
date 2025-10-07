@@ -83,3 +83,11 @@ type BuyerStatsResponse struct {
 	FavoriteFarmers int     `json:"favorite_farmers"`
 	AverageRating   float64 `json:"average_rating"`
 }
+
+type BuyerListResponse struct {
+	Buyers  []*BuyerResponse `json:"buyers"`
+	Total   int64            `json:"total"`
+	Page    int              `json:"page"`
+	Pages   int              `json:"pages"`
+	HasMore bool             `json:"has_more"`
+}

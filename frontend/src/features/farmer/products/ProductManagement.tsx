@@ -1,6 +1,6 @@
 // components/farmer/ProductManagement.tsx - UPDATED
 import React, { useState, useEffect } from 'react';
-import { useProducts, useProductImages } from '../../product/hooks/useProducts';
+import { useProducts, useProductImages } from '../../product/hooks/productHooks';
 import type { ProductResponse, ProductStatus } from '../../product/types/productTypes';
 import { ProductForm } from './ProductForm';
 import { ProductList } from './ProductList';

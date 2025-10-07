@@ -1,0 +1,320 @@
+1. Setup Environment Variables
+First, set up these environment variables in Postman:
+
+json
+{
+  "base_url": "http://localhost:8080/api/v1",
+  "auth_token": "your_jwt_token_here",
+  "admin_token": "your_admin_jwt_token_here",
+  "user_id": "your_user_uuid",
+  "transporter_id": "created_transporter_uuid",
+  "vehicle_id": "created_vehicle_uuid"
+}
+2. Authentication Headers
+For regular users:
+
+text
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+For admin users:
+
+text
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+3. Transporter API Requests
+3.1 Create Transporter Profile
+POST {{base_url}}/transporters
+
+Body:
+
+json
+{
+  "company_name": "Fast Logistics Ltd",
+  "contact_person": "John Doe",
+  "description": "Reliable transportation services across the country",
+  "address": "123 Transport Street",
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "country": "India",
+  "service_areas": ["Mumbai", "Pune", "Delhi", "Bangalore"],
+  "alternate_phone": "+91-9876543210",
+  "website": "https://fastlogistics.com",
+  "license_number": "TRN123456789",
+  "insurance_number": "INS987654321",
+  "year_established": 2015,
+  "fleet_size": 25,
+  "vehicle_types": ["truck", "refrigerated_truck", "van"],
+  "max_capacity": {
+    "weight": 50.5,
+    "volume": 120.0
+  },
+  "specializations": ["perishable", "fragile", "heavy_machinery"]
+}
+3.2 Get My Transporter Profile
+GET {{base_url}}/transporters/me
+
+3.3 Get Transporter by ID
+GET {{base_url}}/transporters/{{transporter_id}}
+
+3.4 Update Transporter Profile
+PUT {{base_url}}/transporters/{{transporter_id}}
+
+Body:
+
+json
+{
+  "company_name": "Fast Logistics Ltd - Updated",
+  "contact_person": "John Doe",
+  "description": "Premium reliable transportation services across the country",
+  "address": "123 Transport Street, Andheri East",
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "country": "India",
+  "service_areas": ["Mumbai", "Pune", "Delhi", "Bangalore", "Chennai"],
+  "alternate_phone": "+91-9876543210",
+  "website": "https://fastlogistics.com",
+  "license_number": "TRN123456789",
+  "insurance_number": "INS987654321",
+  "year_established": 2015,
+  "fleet_size": 30,
+  "vehicle_types": ["truck", "refrigerated_truck", "van", "pickup"],
+  "max_capacity": {
+    "weight": 60.0,
+    "volume": 150.0
+  },
+  "specializations": ["perishable", "fragile", "heavy_machinery", "chemicals"]
+}
+3.5 Get All Transporters (with filters)
+GET {{base_url}}/transporters?city=Mumbai&vehicle_type=truck&min_capacity=20&page=1&page_size=10
+
+Query Parameters you can test:
+
+city=Mumbai
+
+state=Maharashtra
+
+service_area=Delhi
+
+vehicle_type=truck
+
+min_capacity=20
+
+max_capacity=100
+
+is_verified=true
+
+is_premium=false
+
+min_rating=4.0
+
+specialization=perishable
+
+page=1
+
+page_size=10
+
+3.6 Get Transporter Statistics
+GET {{base_url}}/transporters/{{transporter_id}}/stats
+
+3.7 Verify Transporter (Admin Only)
+PUT {{base_url}}/transporters/{{transporter_id}}/verify
+
+3.8 Delete Transporter Profile
+DELETE {{base_url}}/transporters/{{transporter_id}}
+
+4. Vehicle API Requests
+4.1 Add Vehicle
+POST {{base_url}}/transporters/vehicles
+
+Body:
+
+json
+{
+  "vehicle_number": "MH01AB1234",
+  "vehicle_type": "truck",
+  "make": "Tata",
+  "model": "Prima",
+  "year": 2022,
+  "color": "Blue",
+  "capacity": {
+    "weight": 25.0,
+    "volume": 60.0
+  },
+  "rc_number": "RC123456789",
+  "insurance_number": "INSVEH123456",
+  "insurance_expiry": "2025-12-31T00:00:00Z",
+  "fitness_expiry": "2024-12-31T00:00:00Z"
+}
+4.2 Get Vehicles by Transporter
+GET {{base_url}}/transporters/{{transporter_id}}/vehicles
+
+4.3 Update Vehicle
+PUT {{base_url}}/transporters/vehicles/{{vehicle_id}}
+
+Body:
+
+json
+{
+  "vehicle_number": "MH01AB1234",
+  "vehicle_type": "truck",
+  "make": "Tata",
+  "model": "Prima 5530.S",
+  "year": 2022,
+  "color": "Blue & White",
+  "capacity": {
+    "weight": 28.0,
+    "volume": 65.0
+  },
+  "rc_number": "RC123456789",
+  "insurance_number": "INSVEH123456",
+  "insurance_expiry": "2025-12-31T00:00:00Z",
+  "fitness_expiry": "2024-12-31T00:00:00Z"
+}
+4.4 Get Available Vehicles (with filters)
+GET {{base_url}}/transporters/vehicles/available?vehicle_type=truck&min_capacity=20&is_available=true
+
+Query Parameters you can test:
+
+transporter_id={{transporter_id}}
+
+vehicle_type=truck
+
+is_available=true
+
+min_capacity=10
+
+max_capacity=50
+
+location=Mumbai
+
+page=1
+
+page_size=10
+
+5. Test Data for Multiple Scenarios
+Test Data 1 - Refrigerated Transport
+json
+{
+  "company_name": "Cool Transports Inc",
+  "contact_person": "Rajesh Kumar",
+  "description": "Specialized in perishable goods transportation",
+  "address": "456 Cold Storage Road",
+  "city": "Pune",
+  "state": "Maharashtra",
+  "country": "India",
+  "service_areas": ["Pune", "Mumbai", "Hyderabad"],
+  "license_number": "TRN987654321",
+  "insurance_number": "INS123456789",
+  "year_established": 2018,
+  "fleet_size": 15,
+  "vehicle_types": ["refrigerated_truck"],
+  "max_capacity": {
+    "weight": 35.0,
+    "volume": 80.0
+  },
+  "specializations": ["perishable", "pharmaceutical", "dairy"]
+}
+Test Data 2 - Small Vehicle Service
+json
+{
+  "company_name": "Quick Delivery Services",
+  "contact_person": "Priya Sharma",
+  "description": "Fast and reliable small package delivery",
+  "address": "789 Quick Lane",
+  "city": "Bangalore",
+  "state": "Karnataka",
+  "country": "India",
+  "service_areas": ["Bangalore", "Chennai"],
+  "license_number": "TRN555666777",
+  "insurance_number": "INS888999000",
+  "year_established": 2020,
+  "fleet_size": 8,
+  "vehicle_types": ["van", "pickup"],
+  "max_capacity": {
+    "weight": 5.0,
+    "volume": 15.0
+  },
+  "specializations": ["small_packages", "documents", "ecommerce"]
+}
+Test Vehicle Data
+json
+{
+  "vehicle_number": "KA02CD5678",
+  "vehicle_type": "refrigerated_truck",
+  "make": "Ashok Leyland",
+  "model": "Captain",
+  "year": 2023,
+  "color": "White",
+  "capacity": {
+    "weight": 30.0,
+    "volume": 70.0
+  },
+  "rc_number": "RC987654321",
+  "insurance_number": "INSVEH987654",
+  "insurance_expiry": "2025-06-30T00:00:00Z",
+  "fitness_expiry": "2024-06-30T00:00:00Z"
+}
+6. Expected Responses
+Success Response:
+json
+{
+  "success": true,
+  "message": "Transporter profile created successfully",
+  "data": {
+    "id": "uuid-string",
+    "user_id": "uuid-string",
+    "company_name": "Fast Logistics Ltd",
+    // ... other fields
+  }
+}
+Error Response:
+json
+{
+  "success": false,
+  "message": "Invalid input data",
+  "error": "Bad Request"
+}
+7. Testing Sequence
+Start with creating a transporter profile
+
+Add vehicles to the transporter
+
+Test retrieval endpoints (GET)
+
+Test update endpoints (PUT)
+
+Test filtering and search
+
+Test admin endpoints (verification)
+
+Clean up (DELETE) if needed
+
+8. Common Error Scenarios to Test
+Missing required fields
+
+Invalid UUID formats
+
+Unauthorized access (remove auth header)
+
+Invalid vehicle types
+
+Negative capacity values
+
+Duplicate vehicle numbers
+
+Future year_established
+
+Invalid date formats
+
+9. Collection Variables for Automated Testing
+You can set up these variables in your Postman collection:
+
+javascript
+// Pre-request Script for dynamic data
+const companyName = `Test Transporter ${Date.now()}`;
+const vehicleNumber = `MH${Math.floor(Math.random() * 100)}AB${Math.floor(Math.random() * 10000)}`;
+
+pm.collectionVariables.set("company_name", companyName);
+pm.collectionVariables.set("vehicle_number", vehicleNumber);
+This comprehensive Postman collection will help you thoroughly test all aspects of your Transporter API!
+

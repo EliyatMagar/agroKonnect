@@ -1,6 +1,6 @@
 // components/farmer/ProductForm.tsx - UPDATED
 import React, { useState } from 'react';
-import { useProducts, useProductImages } from '../../product/hooks/useProducts';
+import { useProducts, useProductImages } from '../../product/hooks/productHooks';
 import type { 
   ProductResponse, 
   CreateProductRequest, 

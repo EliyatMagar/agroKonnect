@@ -4,8 +4,10 @@ import (
 	"agro_konnect/internal/auth/middleware"
 	authroutes "agro_konnect/internal/auth/routes"
 	"agro_konnect/internal/auth/utils"
+	buyerroutes "agro_konnect/internal/buyer/routes"
 	farmerroutes "agro_konnect/internal/farmer/routes"
 	productroutes "agro_konnect/internal/product/routes"
+	transporterroutes "agro_konnect/internal/transporter/routes"
 	vendorroutes "agro_konnect/internal/vendors/routes"
 	"os"
 	"time"
@@ -34,6 +36,10 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	farmerroutes.SetupFarmerRoutes(api, db, authMiddleware) // Fixed: added missing parameters
 
 	vendorroutes.SetupVendorRoutes(api, db, authMiddleware) // Fixed: added missing parameters
+
+	buyerroutes.SetupBuyerRoutes(api, db, authMiddleware)
+
+	transporterroutes.SetupTransporterRoutes(api, db, authMiddleware)
 
 	// Register product routes with upload directory
 	productUploadDir := "./uploads/products"

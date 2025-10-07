@@ -1,5 +1,6 @@
-// components/farmer/ProductList.tsx - UPDATED
+// components/farmer/ProductList.tsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ProductResponse, ProductStatus } from '../../product/types/productTypes';
 import { formatPrice, getCategoryIcon, productStatuses } from '../../product/utils/productUtils';
 
@@ -20,6 +21,7 @@ export const ProductList: React.FC<ProductListProps> = ({
   onUpdateStatus,
   onUpdateStock
 }) => {
+  const navigate = useNavigate();
   const [stockUpdates, setStockUpdates] = useState<Record<string, number>>({});
   const [showStockInput, setShowStockInput] = useState<string | null>(null);
 
@@ -27,6 +29,10 @@ export const ProductList: React.FC<ProductListProps> = ({
     onUpdateStock(productId, newQuantity);
     setShowStockInput(null);
     setStockUpdates(prev => ({ ...prev, [productId]: 0 }));
+  };
+
+  const handleViewProduct = (productId: string) => {
+    navigate(`/farmer/products/${productId}`);
   };
 
   const getStatusColor = (status: ProductStatus) => {
@@ -41,7 +47,6 @@ export const ProductList: React.FC<ProductListProps> = ({
   };
 
   const handleStatusChange = (productId: string, value: string) => {
-    // Type assertion to ensure we're passing a valid ProductStatus
     onUpdateStatus(productId, value as ProductStatus);
   };
 
@@ -174,6 +179,13 @@ export const ProductList: React.FC<ProductListProps> = ({
                   </select>
 
                   {/* Actions */}
+                  <button
+                    onClick={() => handleViewProduct(product.id)}
+                    className="text-green-600 hover:text-green-900 text-sm font-medium"
+                  >
+                    View
+                  </button>
+
                   <button
                     onClick={() => onEdit(product)}
                     className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"

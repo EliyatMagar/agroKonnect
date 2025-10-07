@@ -1,10 +1,13 @@
-// Dashboard/farmer/FarmerDashboard.tsx - UPDATED
+// Dashboard/farmer/FarmerDashboard.tsx - FIX THE TYPO
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useMyFarmerProfile } from '../../features/farmer/hooks/farmerHooks';
 import { useAuthContext } from '../../features/auth/context/AuthProvider';
 import { FarmerProfile } from '../../features/farmer/pages/FarmerProfile';
-import {ProductManagement} from '../../features/farmer/products/ProductManagement'
+import { ProductManagement } from '../../features/farmer/products/ProductManagement';
+
+
+import { ProductDetails } from '../../features/farmer/products/ProductDetails';
 import { FarmerOrders } from '../../features/farmer/orders/FarmerOrders';
 import { FarmerAnalytics } from '../../features/farmer/analytics/FarmerAnalytics';
 
@@ -115,6 +118,7 @@ export const FarmerDashboard: React.FC = () => {
             <Route path="/dashboard" element={<DashboardHome farmerProfile={farmerProfile} />} />
             <Route path="/profile" element={<FarmerProfile farmer={farmerProfile} />} />
             <Route path="/products" element={<ProductManagement />} />
+            <Route path="/products/:id" element={<ProductDetails />} /> {/* FIXED: ProductDetails not ProductDetials */}
             <Route path="/orders" element={<FarmerOrders />} />
             <Route path="/analytics" element={<FarmerAnalytics />} />
           </Routes>

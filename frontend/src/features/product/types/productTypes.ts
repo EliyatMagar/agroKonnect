@@ -1,4 +1,4 @@
-// types.ts
+// types/productTypes.ts
 export type ProductCategory = 
   | 'fruits' 
   | 'vegetables' 
@@ -21,53 +21,38 @@ export type QualityGrade =
   | 'standard' 
   | 'economy';
 
+// Core Product Interfaces
 export interface Product {
   id: string;
   farmer_id: string;
-  
-  // Basic Information
   name: string;
   category: ProductCategory;
   subcategory: string;
   description: string;
   images: string[];
-
-  // Pricing & Quantity
   price_per_unit: number;
   unit: string;
   available_stock: number;
   min_order: number;
   max_order: number;
-
-  // Quality Information
   quality_grade: QualityGrade;
   organic: boolean;
   certified: boolean;
   certification_details: string;
-
-  // Harvest Information
   harvest_date: string;
   shelf_life: number;
   storage_tips: string;
-
-  // Product Specifications
   weight_range: string;
   color: string;
   size: string;
   variety: string;
-
-  // Status
   status: ProductStatus;
   is_featured: boolean;
   rating: number;
   review_count: number;
-
-  // Location
   farm_location: string;
   latitude: number;
   longitude: number;
-
-  // Timestamps
   created_at: string;
   updated_at: string;
   expiry_date: string;
@@ -78,18 +63,14 @@ export interface ProductReview {
   product_id: string;
   buyer_id: string;
   order_id: string;
-
   rating: number;
   title: string;
   comment: string;
   images: string[];
-
   quality_rating: number;
   value_rating: number;
-
   is_verified: boolean;
   helpful: number;
-
   created_at: string;
   updated_at: string;
 }
@@ -101,27 +82,22 @@ export interface CreateProductRequest {
   subcategory: string;
   description: string;
   images: string[];
-
   price_per_unit: number;
   unit: string;
   available_stock: number;
   min_order: number;
   max_order: number;
-
   quality_grade: QualityGrade;
   organic: boolean;
   certified: boolean;
   certification_details: string;
-
   harvest_date: string;
   shelf_life: number;
   storage_tips: string;
-
   weight_range: string;
   color: string;
   size: string;
   variety: string;
-
   farm_location: string;
   latitude: number;
   longitude: number;
@@ -131,12 +107,10 @@ export interface UpdateProductRequest {
   name?: string;
   description?: string;
   images?: string[];
-
   price_per_unit?: number;
   available_stock?: number;
   min_order?: number;
   max_order?: number;
-
   storage_tips?: string;
   status?: ProductStatus;
 }
@@ -165,49 +139,49 @@ export interface AddReviewRequest {
   value_rating: number;
 }
 
+export interface UpdateStockRequest {
+  quantity: number;
+}
+
+export interface UpdateStatusRequest {
+  status: ProductStatus;
+}
+
 // Response DTOs
 export interface ProductResponse {
   id: string;
   farmer_id: string;
   farmer_name: string;
   farm_name: string;
-
   name: string;
   category: ProductCategory;
   subcategory: string;
   description: string;
   images: string[];
-
   price_per_unit: number;
   unit: string;
   available_stock: number;
   min_order: number;
   max_order: number;
-
   quality_grade: QualityGrade;
   organic: boolean;
   certified: boolean;
   certification_details: string;
-
   harvest_date: string;
   shelf_life: number;
   storage_tips: string;
-
   weight_range: string;
   color: string;
   size: string;
   variety: string;
   latitude: number;
   longitude: number;
-
   status: ProductStatus;
   is_featured: boolean;
   rating: number;
   review_count: number;
-
   farm_location: string;
   distance?: number;
-
   created_at: string;
 }
 
@@ -217,18 +191,14 @@ export interface ProductReviewResponse {
   buyer_id: string;
   buyer_name: string;
   order_id: string;
-
   rating: number;
   title: string;
   comment: string;
   images: string[];
-
   quality_rating: number;
   value_rating: number;
-
   is_verified: boolean;
   helpful: number;
-
   created_at: string;
 }
 
@@ -240,12 +210,26 @@ export interface ProductListResponse {
   has_more: boolean;
 }
 
-export interface UpdateStockRequest {
-  quantity: number;
+// Product Details Specific Types
+export interface ProductDetailsResponse {
+  product: ProductResponse;
+  relatedProducts: ProductResponse[];
+  farmer: {
+    id: string;
+    name: string;
+    farm_name: string;
+    rating: number;
+    total_products: number;
+    joined_date: string;
+    avatar?: string;
+  };
 }
 
-export interface UpdateStatusRequest {
-  status: ProductStatus;
+export interface ProductStats {
+  total_views: number;
+  total_orders: number;
+  conversion_rate: number;
+  wishlist_count: number;
 }
 
 // API Response Wrapper
@@ -263,32 +247,27 @@ export interface ProductFormData {
   subcategory: string;
   description: string;
   images: (File | string)[];
-
   price_per_unit: number;
   unit: string;
   available_stock: number;
   min_order: number;
   max_order: number;
-
   quality_grade: QualityGrade;
   organic: boolean;
   certified: boolean;
   certification_details: string;
-
   harvest_date: string;
   shelf_life: number;
   storage_tips: string;
-
   weight_range: string;
   color: string;
   size: string;
   variety: string;
-
   farm_location: string;
   latitude: number;
   longitude: number;
 }
 
 export type ProductFormSubmission = Omit<CreateProductRequest, 'images'> & {
-  images: string[]; // Only string URLs for API submission
+  images: string[];
 };

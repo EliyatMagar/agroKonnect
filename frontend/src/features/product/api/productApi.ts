@@ -1,3 +1,4 @@
+// api/productApi.ts
 import type { 
   Product, 
   ProductResponse, 
@@ -7,7 +8,9 @@ import type {
   ProductFilterRequest,
   AddReviewRequest,
   ProductReviewResponse,
-  ApiResponse 
+  ApiResponse, 
+  ProductDetailsResponse,
+  ProductStats
 } from '../types/productTypes';
 
 const API_BASE_URL = import.meta.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -40,7 +43,7 @@ class ProductApiService {
   }
 
   // Product CRUD Operations
-   async createProduct(data: CreateProductRequest): Promise<Product> {
+  async createProduct(data: CreateProductRequest): Promise<Product> {
     return this.request<Product>('/products', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -186,6 +189,21 @@ class ProductApiService {
 
   async getProductReviews(productId: string): Promise<ProductReviewResponse[]> {
     return this.request<ProductReviewResponse[]>(`/products/${productId}/reviews`);
+  }
+
+  // FIXED: Added leading slash
+  async getProductDetails(id: string): Promise<ProductDetailsResponse> {
+    return this.request<ProductDetailsResponse>(`/products/${id}/details`);
+  }
+
+  async incrementProductViews(id: string): Promise<void> {
+    return this.request<void>(`/products/${id}/views`, {
+      method: 'POST',
+    });
+  }
+
+  async getProductStats(id: string): Promise<ProductStats> {
+    return this.request<ProductStats>(`/products/${id}/stats`);
   }
 }
 

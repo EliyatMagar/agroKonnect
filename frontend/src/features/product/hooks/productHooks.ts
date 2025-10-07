@@ -235,50 +235,6 @@ export const useProductImages = () => {
   };
 };
 
-// Hook for product reviews
-export const useProductReviews = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const addReview = useCallback(async (
-    productId: string, 
-    data: any
-  ): Promise<any | null> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const review = await productApi.addReview(productId, data);
-      return review;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add review');
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const getReviews = useCallback(async (productId: string): Promise<any[]> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const reviews = await productApi.getProductReviews(productId);
-      return reviews;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch reviews');
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return {
-    loading,
-    error,
-    addReview,
-    getReviews,
-  };
-};
-
 // Hook for product filters and search
 export const useProductSearch = () => {
   const [filters, setFilters] = useState<ProductFilterRequest>({});

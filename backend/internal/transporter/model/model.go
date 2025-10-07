@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type VehicleType string
@@ -31,11 +32,11 @@ type Transporter struct {
 	Description   string `json:"description"`
 
 	// Location & Coverage
-	Address      string   `gorm:"not null" json:"address"`
-	City         string   `gorm:"not null" json:"city"`
-	State        string   `gorm:"not null" json:"state"`
-	Country      string   `gorm:"not null" json:"country"`
-	ServiceAreas []string `gorm:"type:text[]" json:"service_areas"` // cities/states served
+	Address      string         `gorm:"not null" json:"address"`
+	City         string         `gorm:"not null" json:"city"`
+	State        string         `gorm:"not null" json:"state"`
+	Country      string         `gorm:"not null" json:"country"`
+	ServiceAreas datatypes.JSON `gorm:"type:jsonb" json:"service_areas"` // Store as JSON array
 
 	// Contact Information
 	AlternatePhone string `json:"alternate_phone"`
@@ -54,11 +55,11 @@ type Transporter struct {
 
 	// Fleet Information
 	FleetSize    int               `gorm:"default:0" json:"fleet_size"`
-	VehicleTypes []VehicleType     `gorm:"type:varchar(50)[]" json:"vehicle_types"`
+	VehicleTypes datatypes.JSON    `gorm:"type:jsonb" json:"vehicle_types"` // Store as JSON array
 	MaxCapacity  TransportCapacity `gorm:"embedded" json:"max_capacity"`
 
 	// Specializations
-	Specializations []string `gorm:"type:text[]" json:"specializations"` // perishable, fragile, etc.
+	Specializations datatypes.JSON `gorm:"type:jsonb" json:"specializations"` // Store as JSON array
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

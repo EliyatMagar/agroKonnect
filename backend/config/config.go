@@ -2,8 +2,10 @@ package config
 
 import (
 	authModel "agro_konnect/internal/auth/model"
+	buyerModel "agro_konnect/internal/buyer/model"
 	farmerModel "agro_konnect/internal/farmer/model"
 	productModel "agro_konnect/internal/product/model"
+	transporterModel "agro_konnect/internal/transporter/model"
 	vendorModel "agro_konnect/internal/vendors/model"
 
 	"log"
@@ -54,6 +56,8 @@ func LoadConfig() *Config {
 }
 
 func autoMigrate(db *gorm.DB) error {
+
+	db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
 	// Migrate all your models here
 	err := db.AutoMigrate(
 		&authModel.User{},
@@ -64,6 +68,11 @@ func autoMigrate(db *gorm.DB) error {
 		&productModel.ProductReview{},
 		&vendorModel.Vendor{},
 		&vendorModel.VendorProduct{},
+		&buyerModel.Buyer{},
+		&buyerModel.PurchaseHistory{},
+		&transporterModel.TransportCapacity{},
+		&transporterModel.Transporter{},
+		&transporterModel.Vehicle{},
 	)
 
 	if err != nil {
@@ -71,7 +80,14 @@ func autoMigrate(db *gorm.DB) error {
 	}
 
 	log.Println("✅ Database tables migrated successfully")
+
+	// Log the tables that were created
+	var tables []string
+	db.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'").Pluck("table_name", &tables)
+	log.Printf("📊 Current tables in database: %v", tables)
+
 	return nil
+
 }
 
 func getEnv(key, fallback string) string {

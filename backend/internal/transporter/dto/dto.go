@@ -92,3 +92,55 @@ type VehicleResponse struct {
 
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// Additional DTOs for transporter
+type TransporterFilterRequest struct {
+	City           string            `query:"city"`
+	State          string            `query:"state"`
+	ServiceArea    string            `query:"service_area"`
+	VehicleType    model.VehicleType `query:"vehicle_type"`
+	MinCapacity    float64           `query:"min_capacity"`
+	MaxCapacity    float64           `query:"max_capacity"`
+	IsVerified     *bool             `query:"is_verified"`
+	IsPremium      *bool             `query:"is_premium"`
+	MinRating      float64           `query:"min_rating"`
+	Specialization string            `query:"specialization"`
+	Page           int               `query:"page" validate:"min=1"`
+	PageSize       int               `query:"page_size" validate:"min=1,max=100"`
+}
+
+type VehicleFilterRequest struct {
+	TransporterID uuid.UUID         `query:"transporter_id"`
+	VehicleType   model.VehicleType `query:"vehicle_type"`
+	IsAvailable   *bool             `query:"is_available"`
+	MinCapacity   float64           `query:"min_capacity"`
+	MaxCapacity   float64           `query:"max_capacity"`
+	Location      string            `query:"location"`
+	Page          int               `query:"page" validate:"min=1"`
+	PageSize      int               `query:"page_size" validate:"min=1,max=100"`
+}
+
+type TransporterStatsResponse struct {
+	TotalVehicles      int     `json:"total_vehicles"`
+	AvailableVehicles  int     `json:"available_vehicles"`
+	TotalOrders        int     `json:"total_orders"`
+	CompletedOrders    int     `json:"completed_orders"`
+	ActiveOrders       int     `json:"active_orders"`
+	TotalEarnings      float64 `json:"total_earnings"`
+	AverageRating      float64 `json:"average_rating"`
+	OnTimeDeliveryRate float64 `json:"on_time_delivery_rate"`
+}
+
+type TransporterListResponse struct {
+	Transporters []*TransporterResponse `json:"transporters"`
+	Total        int64                  `json:"total"`
+	Page         int                    `json:"page"`
+	Pages        int                    `json:"pages"`
+	HasMore      bool                   `json:"has_more"`
+}
+
+// Add this to your existing dto.go file
+
+type UpdatePremiumStatusRequest struct {
+	Premium bool `json:"premium" validate:"required"`
+}

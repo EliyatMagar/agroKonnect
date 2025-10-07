@@ -1,0 +1,174 @@
+Based on your buyer backend logic, here are the API requests to test your endpoints in Postman:
+
+1. Create Buyer Profile
+POST {{base_url}}/api/buyers
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+Body:
+
+json
+{
+  "business_name": "Fresh Produce Market",
+  "business_type": "retailer",
+  "business_scale": "medium",
+  "description": "A local fresh produce retailer",
+  
+  "address": "123 Main Street",
+  "city": "New York",
+  "state": "NY",
+  "country": "USA",
+  "zip_code": "10001",
+  
+  "contact_person": "John Doe",
+  "designation": "Owner",
+  "alternate_phone": "+1-555-0123",
+  "website": "https://freshproducemarket.com",
+  
+  "business_license": "BUS123456",
+  "tax_id": "TAX789012",
+  "year_established": 2015,
+  "employee_count": 25,
+  
+  "monthly_volume": 5000.50,
+  "preferred_products": ["tomatoes", "potatoes", "carrots"],
+  "quality_standards": ["organic", "grade_a"]
+}
+2. Get All Buyers (with filters)
+GET {{base_url}}/api/buyers?business_type=retailer&city=New+York&page=1&page_size=10
+
+Headers:
+
+text
+Content-Type: application/json
+Query Parameters:
+
+business_type: retailer, wholesaler, exporter, processor, restaurant, supermarket
+
+business_scale: small, medium, large, enterprise
+
+city: New York
+
+state: NY
+
+min_monthly_volume: 1000
+
+preferred_product: tomatoes
+
+page: 1
+
+page_size: 10
+
+3. Get Buyer by ID
+GET {{base_url}}/api/buyers/{{buyer_id}}
+
+Headers:
+
+text
+Content-Type: application/json
+4. Get My Buyer Profile
+GET {{base_url}}/api/buyers/me
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+5. Update Buyer Profile
+PUT {{base_url}}/api/buyers/{{buyer_id}}
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+Body: (same structure as create, but with updated values)
+
+json
+{
+  "business_name": "Updated Business Name",
+  "business_type": "wholesaler",
+  "business_scale": "large",
+  "description": "Updated description",
+  "address": "456 Updated Street",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "USA",
+  "zip_code": "90210",
+  "contact_person": "Jane Smith",
+  "designation": "Manager",
+  "monthly_volume": 10000.75,
+  "preferred_products": ["tomatoes", "onions", "bell_peppers"]
+}
+6. Delete Buyer Profile
+DELETE {{base_url}}/api/buyers/{{buyer_id}}
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+7. Get Buyer Statistics
+GET {{base_url}}/api/buyers/{{buyer_id}}/stats
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+8. Verify Buyer (Admin Only)
+PUT {{base_url}}/api/buyers/{{buyer_id}}/verify
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer {{jwt_token}}
+Postman Setup Instructions:
+Create Environment Variables:
+
+base_url: http://localhost:8080 (or your server URL)
+
+jwt_token: Your authentication token
+
+buyer_id: The ID of an existing buyer
+
+Authentication:
+First, you need to authenticate and get a JWT token from your auth endpoints, then use it in the Authorization header.
+
+Testing Sequence:
+
+Start with creating a buyer profile
+
+Then test GET endpoints
+
+Update the profile
+
+Finally, test delete (if needed)
+
+Sample Valid Business Types:
+retailer
+
+wholesaler
+
+exporter
+
+processor
+
+restaurant
+
+supermarket
+
+Sample Valid Business Scales:
+small
+
+medium
+
+large
+
+enterprise
+
+Make sure your JWT token has the appropriate roles (especially for admin endpoints like verification) and that the user ID in the token matches the buyer profile you're trying to modify.
