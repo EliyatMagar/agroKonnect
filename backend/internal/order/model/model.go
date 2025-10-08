@@ -45,6 +45,7 @@ type Order struct {
 	// Parties involved
 	BuyerID       uuid.UUID `gorm:"not null" json:"buyer_id"`
 	FarmerID      uuid.UUID `gorm:"not null" json:"farmer_id"`
+	VendorID      uuid.UUID `gorm:"not null" json:"vendor_id"`
 	TransporterID uuid.UUID `json:"transporter_id"`
 
 	// Order Details
@@ -113,4 +114,12 @@ type OrderTracking struct {
 	Description string      `json:"description"`
 	Notes       string      `json:"notes"`
 	CreatedAt   time.Time   `json:"created_at"`
+}
+type OrderSummary struct {
+	TotalOrders       int64   `json:"total_orders"`
+	PendingOrders     int64   `json:"pending_orders"`
+	CompletedOrders   int64   `json:"completed_orders"`
+	CancelledOrders   int64   `json:"cancelled_orders"`
+	TotalRevenue      float64 `json:"total_revenue"`
+	AverageOrderValue float64 `json:"average_order_value"`
 }

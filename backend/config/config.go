@@ -4,6 +4,7 @@ import (
 	authModel "agro_konnect/internal/auth/model"
 	buyerModel "agro_konnect/internal/buyer/model"
 	farmerModel "agro_konnect/internal/farmer/model"
+	orderModel "agro_konnect/internal/order/model"
 	productModel "agro_konnect/internal/product/model"
 	transporterModel "agro_konnect/internal/transporter/model"
 	vendorModel "agro_konnect/internal/vendors/model"
@@ -73,6 +74,10 @@ func autoMigrate(db *gorm.DB) error {
 		&transporterModel.TransportCapacity{},
 		&transporterModel.Transporter{},
 		&transporterModel.Vehicle{},
+		&orderModel.Order{},
+		&orderModel.OrderTracking{},
+		&orderModel.OrderItem{},
+		&orderModel.OrderSummary{},
 	)
 
 	if err != nil {

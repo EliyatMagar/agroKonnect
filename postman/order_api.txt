@@ -1,0 +1,301 @@
+1. Create Order
+POST http://localhost:8080/api/orders
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+Body:
+
+json
+{
+  "farmer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "shipping_address": "123 Main Street",
+  "shipping_city": "Bangalore",
+  "shipping_state": "Karnataka",
+  "shipping_zip_code": "560001",
+  "shipping_notes": "Please deliver between 10 AM to 6 PM",
+  "payment_method": "upi",
+  "items": [
+    {
+      "product_id": "f1e2d3c4-b5a6-7890-fedc-ba9876543210",
+      "quantity": 2.5
+    },
+    {
+      "product_id": "c1d2e3f4-a5b6-7890-cdef-ab6543210987",
+      "quantity": 1.0
+    }
+  ]
+}
+2. Get Order by ID
+GET http://localhost:8080/api/orders/{order_id}
+
+Headers:
+
+text
+Authorization: Bearer <your_jwt_token>
+Example:
+
+text
+GET http://localhost:8080/api/orders/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+3. Get Order by Order Number
+GET http://localhost:8080/api/orders/track/{order_number}
+
+Headers:
+
+text
+Authorization: Bearer <your_jwt_token>
+Example:
+
+text
+GET http://localhost:8080/api/orders/track/ORD-20231215143045-abc123de
+4. Get My Orders (Buyer/Farmer)
+GET http://localhost:8080/api/orders/me
+
+Headers:
+
+text
+Authorization: Bearer <your_jwt_token>
+Query Parameters:
+
+text
+?page=1&page_size=10
+Example:
+
+text
+GET http://localhost:8080/api/orders/me?page=1&page_size=10
+5. Update Order Status
+PUT http://localhost:8080/api/orders/{order_id}/status
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+Body:
+
+json
+{
+  "status": "confirmed",
+  "notes": "Order confirmed and ready for processing"
+}
+Available Status Values:
+
+pending
+
+confirmed
+
+processing
+
+shipped
+
+in_transit
+
+delivered
+
+cancelled
+
+6. Assign Transporter to Order
+PUT http://localhost:8080/api/orders/{order_id}/assign-transporter
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+Body:
+
+json
+{
+  "transporter_id": "t1r2a3n4-s5p6-7890-port-ers123456789",
+  "vehicle_id": "v1e2h3i4-c5l6-7890-eid-0987654321",
+  "estimated_delivery": "2024-01-20T18:00:00Z"
+}
+7. Process Payment
+POST http://localhost:8080/api/orders/{order_id}/payment
+
+Headers:
+
+text
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+Body:
+
+json
+{
+  "order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "payment_method": "upi",
+  "payment_details": {
+    "upi_id": "user@upi",
+    "transaction_note": "Payment for order ORD-20231215143045-abc123de"
+  }
+}
+Alternative Payment Methods:
+
+Credit Card:
+
+json
+{
+  "order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "payment_method": "credit_card",
+  "payment_details": {
+    "card_number": "4111111111111111",
+    "expiry_month": "12",
+    "expiry_year": "2025",
+    "cvv": "123",
+    "card_holder": "John Doe"
+  }
+}
+Bank Transfer:
+
+json
+{
+  "order_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "payment_method": "bank_transfer",
+  "payment_details": {
+    "bank_name": "State Bank of India",
+    "account_number": "12345678901",
+    "ifsc_code": "SBIN0001234"
+  }
+}
+8. Cancel Order
+POST http://localhost:8080/api/orders/{order_id}/cancel
+
+Headers:
+
+text
+Authorization: Bearer <your_jwt_token>
+Example:
+
+text
+POST http://localhost:8080/api/orders/a1b2c3d4-e5f6-7890-abcd-ef1234567890/cancel
+9. Get Order Summary
+GET http://localhost:8080/api/orders/summary
+
+Headers:
+
+text
+Authorization: Bearer <your_jwt_token>
+Example:
+
+text
+GET http://localhost:8080/api/orders/summary
+10. Get Tracking History
+GET http://localhost:8080/api/orders/{order_id}/tracking
+
+Headers:
+
+text
+Authorization: Bearer <your_jwt_token>
+Example:
+
+text
+GET http://localhost:8080/api/orders/a1b2c3d4-e5f6-7890-abcd-ef1234567890/tracking
+Sample Responses:
+Create Order Success Response:
+json
+{
+  "success": true,
+  "message": "Order created successfully",
+  "data": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "order_number": "ORD-20231215143045-abc123de",
+    "buyer_id": "b1u2y3e4-r5i6-7890-dent-ifier123456",
+    "farmer_id": "f1a2r3m4-e5r6-7890-idab-cdef12345678",
+    "total_amount": 1250.50,
+    "sub_total": 1100.00,
+    "tax_amount": 110.00,
+    "shipping_cost": 40.50,
+    "discount_amount": 0.00,
+    "status": "pending",
+    "payment_status": "pending",
+    "payment_method": "upi",
+    "shipping_address": "123 Main Street",
+    "shipping_city": "Bangalore",
+    "shipping_state": "Karnataka",
+    "estimated_delivery": "2024-01-20T18:00:00Z",
+    "order_items": [
+      {
+        "id": "i1t2e3m4-i5d6-7890-item-0987654321",
+        "product_id": "f1e2d3c4-b5a6-7890-fedc-ba9876543210",
+        "product_name": "Organic Tomatoes",
+        "product_image": "https://example.com/images/tomatoes.jpg",
+        "unit_price": 200.00,
+        "quantity": 2.5,
+        "unit": "kg",
+        "total_price": 500.00,
+        "quality_grade": "premium",
+        "organic": true
+      }
+    ],
+    "created_at": "2024-01-15T14:30:45Z"
+  }
+}
+Order List Response:
+json
+{
+  "success": true,
+  "message": "Orders retrieved successfully",
+  "data": {
+    "orders": [
+      {
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "order_number": "ORD-20231215143045-abc123de",
+        "total_amount": 1250.50,
+        "status": "confirmed",
+        "payment_status": "paid",
+        "created_at": "2024-01-15T14:30:45Z"
+      }
+    ],
+    "total": 15,
+    "page": 1,
+    "pages": 2,
+    "has_more": true
+  }
+}
+Order Summary Response:
+json
+{
+  "success": true,
+  "message": "Order summary retrieved successfully",
+  "data": {
+    "total_orders": 25,
+    "pending_orders": 5,
+    "completed_orders": 18,
+    "cancelled_orders": 2,
+    "total_revenue": 45250.75,
+    "average_order_value": 1810.03
+  }
+}
+Testing Sequence:
+Start with creating an order (Endpoint #1)
+
+Get the order details (Endpoint #2 or #3)
+
+Process payment (Endpoint #7)
+
+Update order status (Endpoint #5) - try different status transitions
+
+Assign transporter (Endpoint #6)
+
+Check tracking history (Endpoint #10)
+
+Get order summary (Endpoint #9)
+
+Get order list (Endpoint #4)
+
+Cancel order (Endpoint #8) - if needed
+
+Important Notes:
+Replace <your_jwt_token> with actual JWT token from your authentication
+
+Use valid UUIDs that exist in your database
+
+The farmer_id should be a valid farmer ID from your system
+
+The product_id should be valid product IDs with sufficient stock
+
+Test different payment methods and order status transitions
+
+Make sure to test authorization by using tokens for different user roles (buyer, farmer, transporter)

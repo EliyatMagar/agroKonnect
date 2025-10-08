@@ -6,6 +6,7 @@ import (
 	"agro_konnect/internal/auth/utils"
 	buyerroutes "agro_konnect/internal/buyer/routes"
 	farmerroutes "agro_konnect/internal/farmer/routes"
+	orderroutes "agro_konnect/internal/order/routes"
 	productroutes "agro_konnect/internal/product/routes"
 	transporterroutes "agro_konnect/internal/transporter/routes"
 	vendorroutes "agro_konnect/internal/vendors/routes"
@@ -40,6 +41,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	buyerroutes.SetupBuyerRoutes(api, db, authMiddleware)
 
 	transporterroutes.SetupTransporterRoutes(api, db, authMiddleware)
+
+	orderroutes.SetupOrderRoutes(api, db, authMiddleware)
 
 	// Register product routes with upload directory
 	productUploadDir := "./uploads/products"

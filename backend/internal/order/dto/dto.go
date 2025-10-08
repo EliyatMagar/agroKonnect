@@ -9,7 +9,6 @@ import (
 
 // Request DTOs
 type CreateOrderRequest struct {
-	FarmerID        uuid.UUID           `json:"farmer_id" validate:"required"`
 	ShippingAddress string              `json:"shipping_address" validate:"required"`
 	ShippingCity    string              `json:"shipping_city" validate:"required"`
 	ShippingState   string              `json:"shipping_state" validate:"required"`
@@ -52,6 +51,8 @@ type OrderResponse struct {
 	FarmerName      string    `json:"farmer_name"`
 	TransporterID   uuid.UUID `json:"transporter_id,omitempty"`
 	TransporterName string    `json:"transporter_name,omitempty"`
+	VendorName      string    `json:"vendor_name"`
+	VendorID        uuid.UUID `json:"vendor_id,omitempty"`
 
 	TotalAmount    float64 `json:"total_amount"`
 	SubTotal       float64 `json:"sub_total"`
@@ -108,4 +109,12 @@ type OrderSummaryResponse struct {
 	CancelledOrders   int     `json:"cancelled_orders"`
 	TotalRevenue      float64 `json:"total_revenue"`
 	AverageOrderValue float64 `json:"average_order_value"`
+}
+
+type OrderListResponse struct {
+	Orders  []*OrderResponse `json:"orders"`
+	Total   int64            `json:"total"`
+	Page    int              `json:"page"`
+	Pages   int              `json:"pages"`
+	HasMore bool             `json:"has_more"`
 }
