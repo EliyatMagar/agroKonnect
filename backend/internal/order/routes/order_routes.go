@@ -2,6 +2,7 @@ package routes
 
 import (
 	"agro_konnect/internal/auth/middleware"
+	farmerRepo "agro_konnect/internal/farmer/repository"
 	"agro_konnect/internal/order/handler"
 	"agro_konnect/internal/order/repository"
 	"agro_konnect/internal/order/service"
@@ -15,8 +16,9 @@ func SetupOrderRoutes(router *gin.RouterGroup, db *gorm.DB, authMiddleware *midd
 	// Initialize order dependencies
 	orderRepo := repository.NewOrderRepository(db)
 	productRepo := productRepo.NewProductRepository(db)
+	farmerRepo := farmerRepo.NewFarmerRepository(db) // Add this
 	orderService := service.NewOrderService(orderRepo, productRepo)
-	orderHandler := handler.NewOrderHandler(orderService)
+	orderHandler := handler.NewOrderHandler(orderService, farmerRepo)
 
 	orderRoutes := router.Group("/orders")
 	{

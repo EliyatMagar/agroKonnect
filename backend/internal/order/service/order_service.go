@@ -258,6 +258,8 @@ func (s *orderService) GetBuyerOrders(ctx context.Context, buyerID uuid.UUID, pa
 }
 
 func (s *orderService) GetFarmerOrders(ctx context.Context, farmerID uuid.UUID, page, pageSize int) (*dto.OrderListResponse, error) {
+	fmt.Printf("DEBUG GetFarmerOrders: farmerID=%s, page=%d, pageSize=%d\n", farmerID, page, pageSize)
+
 	if page == 0 {
 		page = 1
 	}
@@ -270,9 +272,12 @@ func (s *orderService) GetFarmerOrders(ctx context.Context, farmerID uuid.UUID, 
 		return nil, err
 	}
 
+	fmt.Printf("DEBUG GetFarmerOrders: found %d orders, total=%d\n", len(orders), total)
+
 	responses := make([]*dto.OrderResponse, len(orders))
 	for i, order := range orders {
 		responses[i] = s.toOrderResponse(order)
+		fmt.Printf("DEBUG Order %d: ID=%s, FarmerID=%s, BuyerID=%s\n", i, order.ID, order.FarmerID, order.BuyerID)
 	}
 
 	pages := int((total + int64(pageSize) - 1) / int64(pageSize))

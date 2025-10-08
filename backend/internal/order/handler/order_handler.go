@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"agro_konnect/internal/auth/model"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+
+	farmerRepo "agro_konnect/internal/farmer/repository"
 
 	dto "agro_konnect/internal/order/dto"
 	"agro_konnect/internal/order/service"
@@ -17,11 +18,13 @@ import (
 
 type OrderHandler struct {
 	orderService service.OrderService
+	farmerRepo   farmerRepo.FarmerRepository
 }
 
-func NewOrderHandler(orderService service.OrderService) *OrderHandler {
+func NewOrderHandler(orderService service.OrderService, farmerRepo farmerRepo.FarmerRepository) *OrderHandler {
 	return &OrderHandler{
 		orderService: orderService,
+		farmerRepo:   farmerRepo,
 	}
 }
 
@@ -119,6 +122,7 @@ func (h *OrderHandler) GetOrderByNumber(c *gin.Context) {
 }
 
 // GetMyOrders gets the current user's orders
+// GetMyOrders gets the current user's orders
 func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 	userID, err := GetUserIDFromContext(c)
 	if err != nil {
@@ -133,18 +137,8 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 		return
 	}
 
-	// Convert the role to string - handle both string and model.UserRole types
-	var userRoleStr string
-
-	switch role := userRole.(type) {
-	case string:
-		userRoleStr = role
-	case model.UserRole:
-		userRoleStr = string(role)
-	default:
-		utils.RespondWithError(c, http.StatusForbidden, fmt.Sprintf("Invalid user role type: %T", userRole))
-		return
-	}
+	// Convert role to string
+	userRoleStr := fmt.Sprintf("%v", userRole)
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
@@ -155,7 +149,14 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 	case "buyer":
 		response, err = h.orderService.GetBuyerOrders(c.Request.Context(), userID, page, pageSize)
 	case "farmer":
-		response, err = h.orderService.GetFarmerOrders(c.Request.Context(), userID, page, pageSize)
+		// For farmers, we need to get the farmer ID from the user ID
+		farmer, err := h.farmerRepo.FindByUserID(c.Request.Context(), userID)
+		if err != nil || farmer == nil {
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
+			return
+		}
+		fmt.Printf("DEBUG: UserID=%s, FarmerID=%s\n", userID, farmer.ID)
+		response, err = h.orderService.GetFarmerOrders(c.Request.Context(), farmer.ID, page, pageSize)
 	case "transporter":
 		utils.RespondWithError(c, http.StatusForbidden, "Transporters cannot access orders via this endpoint")
 		return
