@@ -2,6 +2,7 @@ package routes
 
 import (
 	"agro_konnect/internal/auth/middleware"
+	"agro_konnect/internal/auth/model"
 	farmerRepo "agro_konnect/internal/farmer/repository"
 	"agro_konnect/internal/order/handler"
 	"agro_konnect/internal/order/repository"
@@ -16,34 +17,30 @@ func SetupOrderRoutes(router *gin.RouterGroup, db *gorm.DB, authMiddleware *midd
 	// Initialize order dependencies
 	orderRepo := repository.NewOrderRepository(db)
 	productRepo := productRepo.NewProductRepository(db)
-	farmerRepo := farmerRepo.NewFarmerRepository(db) // Add this
+	farmerRepo := farmerRepo.NewFarmerRepository(db)
 	orderService := service.NewOrderService(orderRepo, productRepo)
 	orderHandler := handler.NewOrderHandler(orderService, farmerRepo)
 
 	orderRoutes := router.Group("/orders")
 	{
-		// Protected routes - requires authentication
+		// Public routes
+		orderRoutes.GET("/track/:orderNumber", orderHandler.GetOrderByNumber)
+
+		// Protected routes - requires authentication (same pattern as product routes)
 		authRequired := orderRoutes.Use(authMiddleware.Authenticate())
 		{
-			// Order management
+			// Routes for all authenticated users
 			authRequired.POST("", orderHandler.CreateOrder)
 			authRequired.GET("/me", orderHandler.GetMyOrders)
 			authRequired.GET("/summary", orderHandler.GetOrderSummary)
-
-			// Specific order operations
 			authRequired.GET("/:id", orderHandler.GetOrderByID)
-			authRequired.PUT("/:id/status", orderHandler.UpdateOrderStatus)
 			authRequired.POST("/:id/cancel", orderHandler.CancelOrder)
 			authRequired.GET("/:id/tracking", orderHandler.GetTrackingHistory)
-
-			// Payment
 			authRequired.POST("/:id/payment", orderHandler.ProcessPayment)
 
-			// Farmer specific routes
-			authRequired.PUT("/:id/assign-transporter", orderHandler.AssignTransporter)
+			// Farmer-only routes - apply role middleware directly to specific routes
+			authRequired.PUT("/:id/status", authMiddleware.RequireRole(model.RoleFarmer), orderHandler.UpdateOrderStatus)
+			authRequired.PUT("/:id/assign-transporter", authMiddleware.RequireRole(model.RoleFarmer), orderHandler.AssignTransporter)
 		}
-
-		// Public routes (with order number)
-		orderRoutes.GET("/track/:orderNumber", orderHandler.GetOrderByNumber)
 	}
 }

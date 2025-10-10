@@ -176,7 +176,7 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 	utils.RespondWithSuccess(c, http.StatusOK, "Orders retrieved successfully", response)
 }
 
-// UpdateOrderStatus updates order status
+// In your order handler - UpdateOrderStatus method
 func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	userID, err := GetUserIDFromContext(c)
 	if err != nil {
@@ -184,7 +184,15 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	userRole := c.GetString("userRole")
+	// Get user role from context (same pattern as product handlers)
+	userRoleInterface, exists := c.Get("userRole")
+	if !exists {
+		utils.RespondWithError(c, http.StatusUnauthorized, "user role not found in context")
+		return
+	}
+
+	userRole := fmt.Sprintf("%v", userRoleInterface)
+	fmt.Printf("DEBUG Handler: userRole=%s\n", userRole)
 
 	orderID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -203,7 +211,20 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	if err := h.orderService.UpdateOrderStatus(c.Request.Context(), orderID, userID, userRole, &req); err != nil {
+	// For farmers, get the actual farmer ID from user ID
+	var effectiveUserID uuid.UUID = userID
+
+	if userRole == "farmer" {
+		farmer, err := h.farmerRepo.FindByUserID(c.Request.Context(), userID)
+		if err != nil || farmer == nil {
+			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
+			return
+		}
+		effectiveUserID = farmer.ID
+		fmt.Printf("DEBUG Handler: userID=%s, farmerID=%s\n", userID, effectiveUserID)
+	}
+
+	if err := h.orderService.UpdateOrderStatus(c.Request.Context(), orderID, effectiveUserID, userRole, &req); err != nil {
 		switch err {
 		case service.ErrOrderNotFound:
 			utils.RespondWithError(c, http.StatusNotFound, err.Error())

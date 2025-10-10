@@ -1,3 +1,4 @@
+// App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -112,14 +113,16 @@ const App: React.FC = () => {
               }
             />
             
-            <Route 
+          */}
+
+             <Route 
               path="/buyer/create-profile"
               element={
                 <ProtectedRoute requiredRole="buyer">
                   <div>Buyer Profile Creation - Coming Soon</div>
                 </ProtectedRoute>
               }
-            /> */}
+            />
 
             {/* Main App Routes */}
             <Route
@@ -141,9 +144,9 @@ const App: React.FC = () => {
               }
             />
 
-            {/* Other Dashboard Routes */}
+            {/* ✅ FIXED: Buyer Dashboard Routes with /* */}
             <Route
-              path="/buyer/dashboard"
+              path="/buyer/*"
               element={
                 <ProtectedRoute requiredRole="buyer">
                   <BuyerDashboardPage />
@@ -151,8 +154,9 @@ const App: React.FC = () => {
               }
             />
 
+            {/* Other Dashboard Routes */}
             <Route
-              path="/transporter/dashboard"
+              path="/transporter/*"
               element={
                 <ProtectedRoute requiredRole="transporter">
                   <TransporterDashboardPage />
@@ -161,7 +165,7 @@ const App: React.FC = () => {
             />
 
             <Route
-              path="/vendor/dashboard"
+              path="/vendor/*"
               element={
                 <ProtectedRoute requiredRole="vendor">
                   <VendorDashboardPage />

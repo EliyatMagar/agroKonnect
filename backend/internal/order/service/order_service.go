@@ -301,8 +301,11 @@ func (s *orderService) UpdateOrderStatus(ctx context.Context, orderID uuid.UUID,
 		return ErrOrderNotFound
 	}
 
+	fmt.Printf("DEBUG UpdateOrderStatus: userID=%s , userRole=%s, orderFarmerID=%s, orderBuyerID=%s\n", userID, userRole, order.FarmerID, order.BuyerID)
+
 	// Check authorization
 	if !s.canModifyOrder(order, userID, userRole) {
+		fmt.Printf("DEBUG Authorization failed: canModifyOrder returned false\n")
 		return ErrUnauthorizedAccess
 	}
 

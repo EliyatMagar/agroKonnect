@@ -1,15 +1,14 @@
-// Dashboard/farmer/FarmerDashboard.tsx - FIX THE TYPO
+// Dashboard/farmer/FarmerDashboard.tsx
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useMyFarmerProfile } from '../../features/farmer/hooks/farmerHooks';
 import { useAuthContext } from '../../features/auth/context/AuthProvider';
 import { FarmerProfile } from '../../features/farmer/pages/FarmerProfile';
 import { ProductManagement } from '../../features/farmer/products/ProductManagement';
-
-
 import { ProductDetails } from '../../features/farmer/products/ProductDetails';
 import { FarmerOrders } from '../../features/farmer/orders/FarmerOrders';
 import { FarmerAnalytics } from '../../features/farmer/analytics/FarmerAnalytics';
+import { OrderStats } from '../../features/farmer/orders/OrderStats'; 
 
 export const FarmerDashboard: React.FC = () => {
   const location = useLocation();
@@ -118,7 +117,7 @@ export const FarmerDashboard: React.FC = () => {
             <Route path="/dashboard" element={<DashboardHome farmerProfile={farmerProfile} />} />
             <Route path="/profile" element={<FarmerProfile farmer={farmerProfile} />} />
             <Route path="/products" element={<ProductManagement />} />
-            <Route path="/products/:id" element={<ProductDetails />} /> {/* FIXED: ProductDetails not ProductDetials */}
+            <Route path="/products/:id" element={<ProductDetails />} />
             <Route path="/orders" element={<FarmerOrders />} />
             <Route path="/analytics" element={<FarmerAnalytics />} />
           </Routes>
@@ -169,11 +168,33 @@ interface DashboardHomeProps {
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({ farmerProfile }) => {
+  // ADDED: Quick action handlers
+  const handleAddProduct = () => {
+    // Navigate to add product page or open modal
+    window.location.href = '/farmer/products?action=create';
+  };
+
+  const handleViewAnalytics = () => {
+    window.location.href = '/farmer/analytics';
+  };
+
+  const handleUpdateProfile = () => {
+    window.location.href = '/farmer/profile';
+  };
+
+  const handleManageOrders = () => {
+    window.location.href = '/farmer/orders';
+  };
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-900 mb-8">
         Welcome back, {farmerProfile.farm_name || farmerProfile.full_name}!
       </h1>
+      
+      {/* ADDED: Order Stats Component */}
+      <OrderStats />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Dashboard Stats */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -231,39 +252,51 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ farmerProfile }) => {
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - UPDATED: Added onClick handlers */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow text-center">
+        <button 
+          onClick={handleAddProduct}
+          className="bg-white p-6 rounded-lg shadow text-center hover:shadow-md transition-shadow cursor-pointer"
+        >
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-green-600 text-xl">➕</span>
           </div>
           <h3 className="font-medium text-gray-900 mb-1">Add Product</h3>
           <p className="text-sm text-gray-500">List new farm products</p>
-        </div>
+        </button>
 
-        <div className="bg-white p-6 rounded-lg shadow text-center">
+        <button 
+          onClick={handleViewAnalytics}
+          className="bg-white p-6 rounded-lg shadow text-center hover:shadow-md transition-shadow cursor-pointer"
+        >
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-blue-600 text-xl">📊</span>
           </div>
           <h3 className="font-medium text-gray-900 mb-1">View Analytics</h3>
           <p className="text-sm text-gray-500">Check your sales performance</p>
-        </div>
+        </button>
 
-        <div className="bg-white p-6 rounded-lg shadow text-center">
+        <button 
+          onClick={handleUpdateProfile}
+          className="bg-white p-6 rounded-lg shadow text-center hover:shadow-md transition-shadow cursor-pointer"
+        >
           <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-purple-600 text-xl">📝</span>
           </div>
           <h3 className="font-medium text-gray-900 mb-1">Update Profile</h3>
           <p className="text-sm text-gray-500">Edit farm information</p>
-        </div>
+        </button>
 
-        <div className="bg-white p-6 rounded-lg shadow text-center">
+        <button 
+          onClick={handleManageOrders}
+          className="bg-white p-6 rounded-lg shadow text-center hover:shadow-md transition-shadow cursor-pointer"
+        >
           <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-orange-600 text-xl">🛒</span>
           </div>
           <h3 className="font-medium text-gray-900 mb-1">Manage Orders</h3>
           <p className="text-sm text-gray-500">Process customer orders</p>
-        </div>
+        </button>
       </div>
     </div>
   );

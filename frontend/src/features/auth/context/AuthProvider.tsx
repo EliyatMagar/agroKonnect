@@ -1,18 +1,18 @@
-// features/auth/context/AuthProvider.tsx - UPDATED
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authKeys, useProfile } from '../hooks/useAuth';
 import { useMyFarmerProfile } from '../../../features/farmer/hooks/farmerHooks';
-import type { UserRole } from '../types/auth';
+import { useMyBuyerProfile } from '../../../features/buyer/hooks/useBuyer';
+import type { UserRole, UserResponse } from '../types/auth';
 
 interface AuthContextType {
-  user: any;
+  user: UserResponse | null | undefined;
   isLoading: boolean;
   isAuthenticated: boolean;
   hasProfile: boolean;
   profileLoading: boolean;
   userRole: UserRole | null;
-  logout: () => Promise<void>; // Add logout function
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,10 +30,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refetch: refetchProfile
   } = useProfile();
   
-  const { data: farmerProfile, isLoading: farmerProfileLoading } = useMyFarmerProfile();
+  // ✅ FIX: Conditionally fetch profiles based on user role
+  const { 
+    data: farmerProfile, 
+    isLoading: farmerProfileLoading 
+  } = useMyFarmerProfile(user?.role === 'farmer'); // Only fetch if user is farmer
+  
+  const {
+    data: buyerProfile, 
+    isLoading: buyerProfileLoading
+  } = useMyBuyerProfile(user?.role === 'buyer'); // Only fetch if user is buyer
 
-  // ✅ ADD: Logout function
-  const logout = async (): Promise<void> => {
+  // Logout function
+  const logout = useCallback(async (): Promise<void> => {
     try {
       console.log('🚪 Logging out user...');
       
@@ -55,9 +64,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('❌ Logout failed:', error);
       throw error;
     }
-  };
+  }, [queryClient]);
 
-  // ✅ FIX: Initialize authentication state on app start
+  // Initialize authentication state on app start
   useEffect(() => {
     const initializeAuth = () => {
       const token = localStorage.getItem('access_token');
@@ -73,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
   }, []);
 
-  // ✅ FIX: Update authentication state when user data changes
+  // Update authentication state when user data changes
   useEffect(() => {
     if (user) {
       setIsAuthenticated(true);
@@ -84,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, userLoading, isInitializing]);
 
-  // ✅ FIX: Handle token refresh and auto-reauthentication
+  // Handle token refresh and auto-reauthentication
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -127,47 +136,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [queryClient, refetchProfile, user]);
 
-  // ✅ FIX: Handle authentication errors more gracefully
+  // Handle authentication errors more gracefully
   useEffect(() => {
     if (isError && error) {
-      const errorMessage = error.message || '';
+      const errorMessage = (error as Error).message || '';
       
       if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('Session expired')) {
         console.log('🔄 Clearing tokens due to authentication error');
         
-        // Only clear tokens if we're sure it's an auth error
         const shouldClearTokens = errorMessage.includes('unauthorized') || 
                                 errorMessage.includes('401') || 
                                 errorMessage.includes('Session expired');
         
         if (shouldClearTokens) {
-          // Use the logout function to ensure consistency
           logout();
         }
       }
     }
-  }, [error, isError, queryClient]);
+  }, [error, isError, logout]);
 
   // Determine if user has profile based on their role
-  const hasProfile = React.useMemo(() => {
+  const hasProfile = useMemo(() => {
     if (!user) return false;
     
     switch (user.role) {
       case 'farmer':
         return !!farmerProfile;
       case 'vendor':
-        return false; // Implement when vendor profile is available
+        return false;
       case 'transporter':
-        return false; // Implement when transporter profile is available
+        return false;
       case 'buyer':
-        return false; // Implement when buyer profile is available
+        return !!buyerProfile;
       default:
         return false;
     }
-  }, [user, farmerProfile]);
+  }, [user, farmerProfile, buyerProfile]);
 
   // Determine profile loading state based on role
-  const profileLoading = React.useMemo(() => {
+  const profileLoading = useMemo(() => {
     if (!user) return false;
     
     switch (user.role) {
@@ -178,16 +185,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       case 'transporter':
         return false;
       case 'buyer':
-        return false;
+        return buyerProfileLoading;
       default:
         return false;
     }
-  }, [user, farmerProfileLoading]);
+  }, [user, farmerProfileLoading, buyerProfileLoading]);
 
   // Debug logging
   useEffect(() => {
     console.log('AuthProvider State Update:', {
-      user,
+      user: user ? { id: user.id, email: user.email, role: user.role } : null,
       userLoading,
       isInitializing,
       isAuthenticated,
@@ -198,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, [user, userLoading, isInitializing, isAuthenticated, hasProfile, profileLoading]);
 
-  // ✅ FIX: Show loading state during initialization
+  // Show loading state during initialization
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -210,20 +217,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   }
 
-  const value = {
-    user,
+  // ✅ FIX: Convert undefined to null for context value
+  const value: AuthContextType = {
+    user: user || null, // Convert undefined to null
     isLoading: userLoading,
     isAuthenticated,
     hasProfile,
     profileLoading,
     userRole: user?.role || null,
-    logout, // Include logout function in context value
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuthContext = () => {
+export const useAuthContext = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuthContext must be used within an AuthProvider');

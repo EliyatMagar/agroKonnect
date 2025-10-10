@@ -25,7 +25,7 @@ type CreateBuyerRequest struct {
 	AlternatePhone string `json:"alternate_phone"`
 	Website        string `json:"website"`
 
-	BusinessLicense string `json:"business_license" validate:"required"`
+	BusinessLicense string `json:"business_license"`
 	TaxID           string `json:"tax_id"`
 	YearEstablished int    `json:"year_established" validate:"min=1900"`
 	EmployeeCount   int    `json:"employee_count" validate:"min=0"`
@@ -90,4 +90,31 @@ type BuyerListResponse struct {
 	Page    int              `json:"page"`
 	Pages   int              `json:"pages"`
 	HasMore bool             `json:"has_more"`
+}
+
+type UpdateBuyerRequest struct {
+	BusinessName  string              `json:"business_name"`
+	BusinessType  model.BuyerType     `json:"business_type"`
+	BusinessScale model.BusinessScale `json:"business_scale"`
+	Description   string              `json:"description"`
+
+	Address string `json:"address"`
+	City    string `json:"city"`
+	State   string `json:"state"`
+	Country string `json:"country"`
+	ZipCode string `json:"zip_code"`
+
+	ContactPerson  string `json:"contact_person"`
+	Designation    string `json:"designation"`
+	AlternatePhone string `json:"alternate_phone"`
+	Website        string `json:"website"`
+
+	BusinessLicense string `json:"business_license"`
+	TaxID           string `json:"tax_id"`
+	YearEstablished int    `json:"year_established" validate:"min=1900"`
+	EmployeeCount   int    `json:"employee_count" validate:"min=0"`
+
+	MonthlyVolume     float64  `json:"monthly_volume" validate:"min=0"`
+	PreferredProducts []string `json:"preferred_products"`
+	QualityStandards  []string `json:"quality_standards"`
 }
