@@ -28,11 +28,11 @@ export const useProducts = () => {
     }
   }, []);
 
-  const getProduct = useCallback(async (id: string): Promise<ProductResponse | null> => {
+  const getProductById = useCallback(async (id: string): Promise<ProductResponse | null> => {
     setLoading(true);
     setError(null);
     try {
-      const product = await productApi.getProduct(id);
+      const product = await productApi.getProductById(id);
       return product;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch product');
@@ -167,7 +167,7 @@ export const useProducts = () => {
     loading,
     error,
     createProduct,
-    getProduct,
+    getProductById,
     getMyProducts,
     updateProduct,
     deleteProduct,

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"agro_konnect/internal/auth/middleware"
+
 	farmerRepo "agro_konnect/internal/farmer/repository"
 
 	dto "agro_konnect/internal/order/dto"
@@ -70,7 +72,15 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 		return
 	}
 
-	userRole := c.GetString("userRole")
+	// Get user role properly
+	userRoleInterface, exists := c.Get(middleware.UserRoleContextKey)
+	if !exists {
+		utils.RespondWithError(c, http.StatusUnauthorized, "user role not found in context")
+		return
+	}
+
+	userRole := fmt.Sprintf("%v", userRoleInterface)
+	fmt.Printf("DEBUG Handler - GetOrderByID: userID=%s, userRole=%s\n", userID, userRole)
 
 	orderID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -122,7 +132,6 @@ func (h *OrderHandler) GetOrderByNumber(c *gin.Context) {
 }
 
 // GetMyOrders gets the current user's orders
-// GetMyOrders gets the current user's orders
 func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 	userID, err := GetUserIDFromContext(c)
 	if err != nil {
@@ -130,33 +139,34 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 		return
 	}
 
-	// Get user role from context
-	userRole, exists := c.Get("userRole")
+	// Get user role properly
+	userRoleInterface, exists := c.Get(middleware.UserRoleContextKey)
 	if !exists {
-		utils.RespondWithError(c, http.StatusForbidden, "User role not found in context")
+		utils.RespondWithError(c, http.StatusUnauthorized, "user role not found in context")
 		return
 	}
 
-	// Convert role to string
-	userRoleStr := fmt.Sprintf("%v", userRole)
+	userRole := fmt.Sprintf("%v", userRoleInterface)
+	fmt.Printf("DEBUG GetMyOrders: userID=%s, userRole=%s\n", userID, userRole)
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 
 	var response *dto.OrderListResponse
+	var serviceErr error // Use different variable name to avoid redeclaration
 
-	switch userRoleStr {
+	switch userRole {
 	case "buyer":
-		response, err = h.orderService.GetBuyerOrders(c.Request.Context(), userID, page, pageSize)
+		response, serviceErr = h.orderService.GetBuyerOrders(c.Request.Context(), userID, page, pageSize)
 	case "farmer":
 		// For farmers, we need to get the farmer ID from the user ID
-		farmer, err := h.farmerRepo.FindByUserID(c.Request.Context(), userID)
-		if err != nil || farmer == nil {
+		farmer, farmerErr := h.farmerRepo.FindByUserID(c.Request.Context(), userID)
+		if farmerErr != nil || farmer == nil {
 			utils.RespondWithError(c, http.StatusNotFound, "Farmer profile not found")
 			return
 		}
 		fmt.Printf("DEBUG: UserID=%s, FarmerID=%s\n", userID, farmer.ID)
-		response, err = h.orderService.GetFarmerOrders(c.Request.Context(), farmer.ID, page, pageSize)
+		response, serviceErr = h.orderService.GetFarmerOrders(c.Request.Context(), farmer.ID, page, pageSize)
 	case "transporter":
 		utils.RespondWithError(c, http.StatusForbidden, "Transporters cannot access orders via this endpoint")
 		return
@@ -164,11 +174,11 @@ func (h *OrderHandler) GetMyOrders(c *gin.Context) {
 		utils.RespondWithError(c, http.StatusForbidden, "Vendors cannot access orders via this endpoint")
 		return
 	default:
-		utils.RespondWithError(c, http.StatusForbidden, "Access denied for user role: "+userRoleStr)
+		utils.RespondWithError(c, http.StatusForbidden, "Access denied for user role: "+userRole)
 		return
 	}
 
-	if err != nil {
+	if serviceErr != nil {
 		utils.RespondWithError(c, http.StatusInternalServerError, "Failed to retrieve orders")
 		return
 	}

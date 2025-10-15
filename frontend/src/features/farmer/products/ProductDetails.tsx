@@ -14,7 +14,7 @@ import type {
 export const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getProductDetails, trackProductView, loading, error } = useProductDetails();
+  const { getProductDetails, loading, error } = useProductDetails();
   const { getReviews, addReview, loading: reviewsLoading } = useProductReviews();
   
   const [productDetails, setProductDetails] = useState<ProductDetailsResponse | null>(null);
@@ -27,7 +27,6 @@ export const ProductDetails: React.FC = () => {
     if (id) {
       loadProductDetails();
       loadReviews();
-      trackProductView(id);
     }
   }, [id]);
 
@@ -52,6 +51,9 @@ export const ProductDetails: React.FC = () => {
       quantity,
       product: productDetails.product
     });
+    
+    // Show success message
+    alert(`${quantity} ${productDetails.product.unit} of ${productDetails.product.name} added to cart!`);
   };
 
   const handleBuyNow = () => {
@@ -63,6 +65,9 @@ export const ProductDetails: React.FC = () => {
       quantity,
       product: productDetails.product
     });
+    
+    // Show confirmation
+    alert(`Proceeding to checkout with ${quantity} ${productDetails.product.unit} of ${productDetails.product.name}`);
   };
 
   const handleReviewSubmit = async (reviewData: AddReviewRequest) => {
@@ -72,6 +77,7 @@ export const ProductDetails: React.FC = () => {
     if (result) {
       setShowReviewForm(false);
       loadReviews();
+      alert('Review submitted successfully!');
     }
   };
 
@@ -105,6 +111,14 @@ export const ProductDetails: React.FC = () => {
   }
 
   const { product, farmer, relatedProducts } = productDetails;
+  
+  // Add safety checks for farmer data
+  const farmerName = farmer?.name || 'Farmer';
+  const farmName = farmer?.farm_name || 'Farm';
+  const farmerRating = farmer?.rating || 0;
+  const totalProducts = farmer?.total_products || 0;
+  const joinedDate = farmer?.joined_date || new Date().toISOString();
+
   const expiryDate = calculateExpiryDate(product.harvest_date, product.shelf_life);
   const expired = isProductExpired(expiryDate.toISOString());
 
@@ -157,6 +171,13 @@ export const ProductDetails: React.FC = () => {
                     src={image}
                     alt={`${product.name} ${index + 2}`}
                     className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-75"
+                    onClick={() => {
+                      // Simple image viewer - in real app you might want a proper gallery
+                      const mainImage = document.querySelector('.main-product-image') as HTMLImageElement;
+                      if (mainImage) {
+                        mainImage.src = image;
+                      }
+                    }}
                   />
                 ))}
               </div>
@@ -262,7 +283,7 @@ export const ProductDetails: React.FC = () => {
                   <button
                     onClick={() => setQuantity(prev => Math.max(product.min_order, prev - 1))}
                     disabled={quantity <= product.min_order}
-                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
                     -
                   </button>
@@ -272,7 +293,7 @@ export const ProductDetails: React.FC = () => {
                       product.max_order > 0 ? Math.min(product.max_order, prev + 1) : prev + 1
                     )}
                     disabled={product.max_order > 0 && quantity >= product.max_order}
-                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
                     +
                   </button>
@@ -287,14 +308,14 @@ export const ProductDetails: React.FC = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={product.available_stock === 0 || expired}
-                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   {product.available_stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                 </button>
                 <button
                   onClick={handleBuyNow}
                   disabled={product.available_stock === 0 || expired}
-                  className="flex-1 bg-orange-600 text-white py-3 px-6 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 bg-orange-600 text-white py-3 px-6 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   Buy Now
                 </button>
@@ -327,18 +348,18 @@ export const ProductDetails: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                   <span className="text-green-600 font-semibold">
-                    {farmer.name?.charAt(0) || 'F'}
+                    {farmerName?.charAt(0) || 'F'}
                   </span>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{farmer.farm_name}</h4>
-                  <p className="text-sm text-gray-600">Farmer since {new Date(farmer.joined_date).getFullYear()}</p>
+                  <h4 className="font-medium text-gray-900">{farmName}</h4>
+                  <p className="text-sm text-gray-600">Farmer since {new Date(joinedDate).getFullYear()}</p>
                   <div className="flex items-center space-x-4 mt-1">
                     <span className="text-sm text-gray-500">
-                      ⭐ {farmer.rating} Rating
+                      ⭐ {farmerRating} Rating
                     </span>
                     <span className="text-sm text-gray-500">
-                      📦 {farmer.total_products} Products
+                      📦 {totalProducts} Products
                     </span>
                   </div>
                 </div>
@@ -462,7 +483,7 @@ export const ProductDetails: React.FC = () => {
                   <h4 className="font-semibold">Customer Reviews</h4>
                   <button
                     onClick={() => setShowReviewForm(true)}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 font-medium"
                   >
                     Write a Review
                   </button>
@@ -474,7 +495,9 @@ export const ProductDetails: React.FC = () => {
                   </div>
                 ) : reviews.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    No reviews yet. Be the first to review this product!
+                    <div className="text-4xl mb-4">💬</div>
+                    <p className="text-lg mb-2">No reviews yet</p>
+                    <p className="text-sm">Be the first to review this product!</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -522,27 +545,27 @@ export const ProductDetails: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                     <span className="text-green-600 text-xl font-semibold">
-                      {farmer.name?.charAt(0) || 'F'}
+                      {farmerName?.charAt(0) || 'F'}
                     </span>
                   </div>
                   <div>
-                    <h4 className="text-xl font-semibold">{farmer.farm_name}</h4>
-                    <p className="text-gray-600">Managed by {farmer.name}</p>
+                    <h4 className="text-xl font-semibold">{farmName}</h4>
+                    <p className="text-gray-600">Managed by {farmerName}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{farmer.rating}</div>
+                    <div className="text-2xl font-bold text-green-600">{farmerRating}</div>
                     <div className="text-sm text-gray-600">Average Rating</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{farmer.total_products}</div>
+                    <div className="text-2xl font-bold text-green-600">{totalProducts}</div>
                     <div className="text-sm text-gray-600">Products Listed</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {new Date().getFullYear() - new Date(farmer.joined_date).getFullYear()}
+                      {new Date().getFullYear() - new Date(joinedDate).getFullYear()}
                     </div>
                     <div className="text-sm text-gray-600">Years Farming</div>
                   </div>
@@ -551,6 +574,15 @@ export const ProductDetails: React.FC = () => {
                 <div>
                   <h5 className="font-semibold mb-3">Farm Location</h5>
                   <p className="text-gray-700">{product.farm_location}</p>
+                </div>
+
+                <div>
+                  <h5 className="font-semibold mb-3">About the Farm</h5>
+                  <p className="text-gray-700">
+                    {farmName} is dedicated to providing high-quality, {product.organic ? 'organic ' : ''}
+                    {product.category} products. With a focus on sustainable farming practices and 
+                    customer satisfaction, they ensure every product meets the highest standards of quality.
+                  </p>
                 </div>
               </div>
             )}
@@ -566,7 +598,7 @@ export const ProductDetails: React.FC = () => {
                 <Link
                   key={relatedProduct.id}
                   to={`/products/${relatedProduct.id}`}
-                  className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                  className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow block"
                 >
                   {relatedProduct.images && relatedProduct.images.length > 0 ? (
                     <img
@@ -629,12 +661,19 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit, onCancel, loading }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.comment.trim()) {
+      alert('Please provide a review comment');
+      return;
+    }
+    
     onSubmit(formData);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
+      <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Rating Inputs */}
@@ -648,7 +687,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit, onCancel, loading }) 
                   key={star}
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
-                  className="text-2xl focus:outline-none"
+                  className="text-2xl focus:outline-none hover:scale-110 transition-transform"
                 >
                   <span className={star <= formData.rating ? 'text-yellow-400' : 'text-gray-300'}>
                     ★
@@ -666,7 +705,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit, onCancel, loading }) 
               <select
                 value={formData.quality_rating}
                 onChange={(e) => setFormData(prev => ({ ...prev, quality_rating: parseInt(e.target.value) }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 {[1, 2, 3, 4, 5].map((num) => (
                   <option key={num} value={num}>
@@ -682,7 +721,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit, onCancel, loading }) 
               <select
                 value={formData.value_rating}
                 onChange={(e) => setFormData(prev => ({ ...prev, value_rating: parseInt(e.target.value) }))}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 {[1, 2, 3, 4, 5].map((num) => (
                   <option key={num} value={num}>
@@ -701,37 +740,37 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit, onCancel, loading }) 
               type="text"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Summarize your experience"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Review Comment
+              Review Comment *
             </label>
             <textarea
               value={formData.comment}
               onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
               rows={4}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Share your experience with this product..."
               required
             />
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               {loading ? 'Submitting...' : 'Submit Review'}
             </button>

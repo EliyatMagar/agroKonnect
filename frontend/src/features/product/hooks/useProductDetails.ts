@@ -5,7 +5,7 @@ import type {
   ProductStats,
   AddReviewRequest,
   ProductReviewResponse 
-} from '../types/productTypes'; // Make sure this import path is correct
+} from '../types/productTypes';
 import { productApi } from '../api/productApi';
 
 export const useProductDetails = () => {
@@ -40,12 +40,14 @@ export const useProductDetails = () => {
     }
   }, []);
 
+  // FIXED: Remove view tracking since endpoint doesn't exist
   const trackProductView = useCallback(async (id: string): Promise<boolean> => {
     try {
-      await productApi.incrementProductViews(id);
+      // Simply return true without making API call
+      console.log('View tracking disabled - endpoint not implemented');
       return true;
     } catch (err) {
-      console.error('Failed to track product view:', err);
+      console.warn('View tracking failed:', err);
       return false;
     }
   }, []);
@@ -59,7 +61,6 @@ export const useProductDetails = () => {
   };
 };
 
-// Add the missing useProductReviews hook here
 export const useProductReviews = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

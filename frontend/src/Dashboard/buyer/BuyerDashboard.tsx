@@ -5,6 +5,9 @@ import { useMyBuyerProfile } from '../../features/buyer/hooks/useBuyer';
 import { useAuthContext } from '../../features/auth/context/AuthProvider';
 import { BuyerProfile } from '../../features/buyer/pages/BuyerProfile';
 import { BuyerStats } from '../../features/buyer/pages/BuyerStats';
+import {Suppliers} from '../../features/buyer/suppliers/Suppliers'
+import {BuyerOrders} from '../../features/buyer/order/BuyerOrder'
+import Checkout from '../../features/buyer/order/Checkout'
 
 export const BuyerDashboard: React.FC = () => {
   const location = useLocation();
@@ -114,9 +117,10 @@ export const BuyerDashboard: React.FC = () => {
             <Route path="/" element={<DashboardHome buyerProfile={buyerProfile} />} />
             <Route path="/profile" element={<BuyerProfile buyer={buyerProfile} />} />
             {/* Add other routes as needed */}
-            <Route path="/suppliers" element={<div>Suppliers Management - Coming Soon</div>} />
-            <Route path="/orders" element={<div>Orders Management - Coming Soon</div>} />
+            <Route path="/suppliers" element={<Suppliers />} />
+            <Route path="/orders" element={<BuyerOrders />} />
             <Route path="/purchases" element={<div>Purchase History - Coming Soon</div>} />
+            <Route path="/checkout" element={<Checkout />} />
             {/* Catch-all route for buyer section */}
             <Route path="*" element={<Navigate to="/buyer" replace />} />
           </Routes>

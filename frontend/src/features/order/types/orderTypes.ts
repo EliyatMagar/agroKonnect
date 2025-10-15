@@ -136,40 +136,65 @@ export interface AdminOrderFilterRequest extends OrderFilterRequest {
 }
 
 // Response DTOs
+// types/orderTypes.ts
 export interface OrderResponse {
   id: string;
   order_number: string;
+  
+  // Buyer information
   buyer_id: string;
   buyer_name: string;
+  buyer_email?: string;
+  buyer_phone?: string;
+  
+  // Farmer information
   farmer_id: string;
   farmer_name: string;
+  farmer_email?: string;
+  farmer_phone?: string;
+  farmer_address?: string;
+  
+  // Other existing fields
   transporter_id?: string;
   transporter_name?: string;
   vendor_name: string;
   vendor_id?: string;
+  
+  // Financial information
   total_amount: number;
   sub_total: number;
   tax_amount: number;
   shipping_cost: number;
   discount_amount: number;
+  
+  // Status information
   status: OrderStatus;
   payment_status: PaymentStatus;
   payment_method: PaymentMethod;
-  shipping_notes:string;
+  
+  // Shipping information
   shipping_address: string;
   shipping_city: string;
   shipping_state: string;
   shipping_zip_code: string;
+  shipping_notes: string;
+  
+  // Delivery information
   estimated_delivery: string;
   actual_delivery?: string;
   tracking_number?: string;
   tracking_url?: string;
+  
+  // Order items and tracking
   order_items: OrderItemResponse[];
   tracking_history: TrackingResponse[];
+  
+  // Timestamps
   created_at: string;
-  updated_at:string;
+  updated_at: string;
 }
 
+// Also enhance OrderItemResponse to include more product details
 export interface OrderItemResponse {
   id: string;
   product_id: string;
@@ -181,6 +206,10 @@ export interface OrderItemResponse {
   total_price: number;
   quality_grade: string;
   organic: boolean;
+  // Add these fields for better product display
+  harvest_date?: string;
+  product_description?: string;
+  category?: string;
 }
 
 export interface TrackingResponse {

@@ -202,6 +202,9 @@ func (s *orderService) GetOrderByID(ctx context.Context, orderID uuid.UUID, user
 		return nil, ErrOrderNotFound
 	}
 
+	fmt.Printf("DEBUG GetOrderByID: userID=%s, userRole=%s, orderBuyerID=%s, orderFarmerID=%s\n",
+		userID, userRole, order.BuyerID, order.FarmerID)
+
 	// Check authorization
 	if !s.canAccessOrder(order, userID, userRole) {
 		return nil, ErrUnauthorizedAccess
@@ -545,16 +548,27 @@ func (s *orderService) AddTrackingEvent(ctx context.Context, orderID uuid.UUID, 
 
 // Helper methods
 func (s *orderService) canAccessOrder(order *model.Order, userID uuid.UUID, userRole string) bool {
+	fmt.Printf("DEBUG canAccessOrder: userRole=%s, userID=%s, orderBuyerID=%s, orderFarmerID=%s, orderTransporterID=%s\n",
+		userRole, userID, order.BuyerID, order.FarmerID, order.TransporterID)
+
 	switch userRole {
 	case "buyer":
-		return order.BuyerID == userID
+		result := order.BuyerID == userID
+		fmt.Printf("DEBUG Buyer check: %v (buyerID: %s == userID: %s)\n", result, order.BuyerID, userID)
+		return result
 	case "farmer":
-		return order.FarmerID == userID
+		result := order.FarmerID == userID
+		fmt.Printf("DEBUG Farmer check: %v (farmerID: %s == userID: %s)\n", result, order.FarmerID, userID)
+		return result
 	case "transporter":
-		return order.TransporterID == userID
+		result := order.TransporterID == userID
+		fmt.Printf("DEBUG Transporter check: %v (transporterID: %s == userID: %s)\n", result, order.TransporterID, userID)
+		return result
 	case "admin":
+		fmt.Printf("DEBUG Admin access granted\n")
 		return true
 	default:
+		fmt.Printf("DEBUG Unknown role: %s\n", userRole)
 		return false
 	}
 }
