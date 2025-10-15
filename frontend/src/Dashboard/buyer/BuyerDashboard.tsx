@@ -5,9 +5,10 @@ import { useMyBuyerProfile } from '../../features/buyer/hooks/useBuyer';
 import { useAuthContext } from '../../features/auth/context/AuthProvider';
 import { BuyerProfile } from '../../features/buyer/pages/BuyerProfile';
 import { BuyerStats } from '../../features/buyer/pages/BuyerStats';
-import {Suppliers} from '../../features/buyer/suppliers/Suppliers'
-import {BuyerOrders} from '../../features/buyer/order/BuyerOrder'
-import Checkout from '../../features/buyer/order/Checkout'
+import { Suppliers } from '../../features/buyer/suppliers/Suppliers';
+import {PurchaseHistory} from '../../features/buyer/purchase_history/PurchaseHistory'
+import { BuyerOrders } from '../../features/buyer/order/BuyerOrder';
+import Checkout from '../../features/buyer/order/Checkout';
 
 export const BuyerDashboard: React.FC = () => {
   const location = useLocation();
@@ -16,7 +17,6 @@ export const BuyerDashboard: React.FC = () => {
   const { logout } = useAuthContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // ✅ FIXED: Updated navigation paths to use /buyer base
   const navigation = [
     { name: 'Dashboard', href: '/buyer', current: location.pathname === '/buyer' },
     { name: 'Suppliers', href: '/buyer/suppliers', current: location.pathname === '/buyer/suppliers' },
@@ -112,16 +112,13 @@ export const BuyerDashboard: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* ✅ FIXED: Nested routes now work properly with /buyer/* parent route */}
           <Routes>
             <Route path="/" element={<DashboardHome buyerProfile={buyerProfile} />} />
             <Route path="/profile" element={<BuyerProfile buyer={buyerProfile} />} />
-            {/* Add other routes as needed */}
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/orders" element={<BuyerOrders />} />
-            <Route path="/purchases" element={<div>Purchase History - Coming Soon</div>} />
+            <Route path="/purchases" element={<PurchaseHistory />} />
             <Route path="/checkout" element={<Checkout />} />
-            {/* Catch-all route for buyer section */}
             <Route path="*" element={<Navigate to="/buyer" replace />} />
           </Routes>
         </div> 
@@ -173,7 +170,6 @@ interface DashboardHomeProps {
 const DashboardHome: React.FC<DashboardHomeProps> = ({ buyerProfile }) => {
   const navigate = useNavigate();
 
-  // ✅ FIXED: Use navigate instead of window.location.href
   const handleFindSuppliers = () => {
     navigate('/buyer/suppliers');
   };

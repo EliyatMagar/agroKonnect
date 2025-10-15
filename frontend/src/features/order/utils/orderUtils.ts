@@ -223,3 +223,18 @@ export const requiresAction = (order: OrderResponse, userRole: string): boolean 
       return false;
   }
 };
+
+
+// features/order/utils/orderUtils.ts
+// Add this function to your existing orderUtils
+
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};

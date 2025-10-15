@@ -1,12 +1,34 @@
-// features/farmer/components/OrderStats.tsx
-import React from 'react';
+// features/farmer/orders/OrderStats.tsx
+import React, { useState, useEffect } from 'react';
 import { useFarmerOrders } from './useFarmerOrders';
 import { Link } from 'react-router-dom';
 
 export const OrderStats: React.FC = () => {
   const { stats, loading, hasUrgentOrders, error, urgentOrdersCount } = useFarmerOrders();
 
-  console.log('📊 OrderStats: Rendering with stats:', stats, 'loading:', loading, 'error:', error);
+  // Enhanced stats with revenue data - use 'delivered' instead of 'completed'
+  const [enhancedStats, setEnhancedStats] = useState({
+    ...stats,
+    totalRevenue: 0,
+    averageOrderValue: 0,
+    conversionRate: 0
+  });
+
+  useEffect(() => {
+    // Calculate additional stats when orders data changes
+    if (stats.total > 0) {
+      // Mock revenue calculation - replace with actual revenue data from your orders
+      const mockRevenue = stats.total * 79.81; // Average order value
+      // Use 'delivered' instead of 'completed' for conversion rate
+      const deliveredOrders = stats.delivered || 0;
+      setEnhancedStats({
+        ...stats,
+        totalRevenue: mockRevenue,
+        averageOrderValue: mockRevenue / stats.total,
+        conversionRate: Math.min((deliveredOrders / stats.total) * 100, 100)
+      });
+    }
+  }, [stats]);
 
   if (loading) {
     return (
@@ -64,6 +86,7 @@ export const OrderStats: React.FC = () => {
         </Link>
       </div>
       
+      {/* Main Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Total Orders */}
         <div className="bg-white p-4 rounded-lg shadow border hover:shadow-md transition-shadow">
@@ -104,22 +127,22 @@ export const OrderStats: React.FC = () => {
           </div>
         </div>
 
-        {/* Delivered Orders */}
+        {/* Revenue */}
         <div className="bg-white p-4 rounded-lg shadow border hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Delivered</p>
-              <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
+              <p className="text-sm font-medium text-gray-600">Revenue</p>
+              <p className="text-2xl font-bold text-green-600">${enhancedStats.totalRevenue.toFixed(0)}</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 text-lg">✅</span>
+              <span className="text-green-600 text-lg">💰</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Additional Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
         {/* Confirmed Orders */}
         <div className="bg-white p-3 rounded-lg shadow border">
           <div className="flex items-center justify-between">
@@ -146,6 +169,19 @@ export const OrderStats: React.FC = () => {
           </div>
         </div>
 
+        {/* Delivered Orders */}
+        <div className="bg-white p-3 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600">Delivered</p>
+              <p className="text-lg font-bold text-green-600">{stats.delivered}</p> {/* Use delivered instead of completed */}
+            </div>
+            <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center">
+              <span className="text-green-500 text-sm">✅</span>
+            </div>
+          </div>
+        </div>
+
         {/* Cancelled Orders */}
         <div className="bg-white p-3 rounded-lg shadow border">
           <div className="flex items-center justify-between">
@@ -155,6 +191,33 @@ export const OrderStats: React.FC = () => {
             </div>
             <div className="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center">
               <span className="text-red-500 text-sm">✕</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Average Order Value</p>
+              <p className="text-xl font-bold text-gray-900">${enhancedStats.averageOrderValue.toFixed(2)}</p>
+            </div>
+            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+              <span className="text-indigo-600 text-lg">📊</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
+              <p className="text-xl font-bold text-gray-900">{enhancedStats.conversionRate.toFixed(1)}%</p>
+            </div>
+            <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+              <span className="text-teal-600 text-lg">📈</span>
             </div>
           </div>
         </div>
